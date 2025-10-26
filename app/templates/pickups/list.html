@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Recogidas - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1><i class="bi bi-box-arrow-up"></i> Recogidas de Vehículos</h1>
+        <p class="text-muted">Control de entregas y devoluciones</p>
+    </div>
+    <div class="col-md-6 text-end">
+        <button class="btn btn-primary" disabled>
+            <i class="bi bi-plus-circle"></i> Nueva Recogida
+        </button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="text-center py-5">
+            <i class="bi bi-box-arrow-up display-1 text-muted"></i>
+            <p class="mt-3 text-muted">No hay registros de recogidas.</p>
+            <p class="small text-muted">Este módulo permite gestionar las entregas y devoluciones de vehículos, incluyendo inspecciones y documentación.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

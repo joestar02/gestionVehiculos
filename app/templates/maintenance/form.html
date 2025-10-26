@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Programar Mantenimiento - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1><i class="bi bi-tools"></i> Programar Mantenimiento</h1>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="vehicle_id" class="form-label">Vehículo *</label>
+                    <select class="form-select" id="vehicle_id" name="vehicle_id" required>
+                        <option value="">Seleccionar vehículo...</option>
+                        {% for vehicle in vehicles %}
+                            <option value="{{ vehicle.id }}" {% if record and record.vehicle_id == vehicle.id %}selected{% endif %}>
+                            {{ vehicle.license_plate }} - {{ vehicle.make }} {{ vehicle.model }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="maintenance_type" class="form-label">Tipo de Mantenimiento *</label>
+                    <select class="form-select" id="maintenance_type" name="maintenance_type" required>
+                        <option value="">Seleccionar tipo...</option>
+                        {% for mtype in maintenance_types %}
+                            <option value="{{ mtype.value }}" {% if record and record.maintenance_type.value == mtype.value %}selected{% endif %}>{{ mtype.value|t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="scheduled_date" class="form-label">Fecha Programada *</label>
+                    <input type="date" class="form-control" id="scheduled_date" name="scheduled_date" required>
+                    value="{% if record and record.scheduled_date %}{{ record.scheduled_date.strftime('%Y-%m-%d') }}{% endif %}">
+                
+                <div class="col-md-6 mb-3">
+                    <label for="provider_id" class="form-label">Proveedor</label>
+                    <select class="form-select" id="provider_id" name="provider_id">
+                        <option value="">Seleccionar proveedor (opcional)...</option>
+                        {% for provider in providers %}
+                            <option value="{{ provider.id }}" {% if record and record.provider_id == provider.id %}selected{% endif %}>{{ provider.name }} - {{ provider.provider_type_display }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="description" class="form-label">Descripción *</label>
+                <textarea class="form-control" id="description" name="description" rows="3" required
+                              placeholder="Describe el mantenimiento a realizar...">{% if record %}{{ record.description }}{% endif %}</textarea>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="estimated_cost" class="form-label">Costo Estimado (€)</label>
+                     <input type="text" class="form-control" id="estimated_cost" name="estimated_cost" placeholder="Ej: 1.234,56" value="{% if record and record.cost is not none %}{{ "{:,.2f}".format(record.cost) | replace(',', '\\,') }}{% endif %}">
+                     <div class="form-text">Usa "," o "." como separador decimal. Ej: 1234.56 o 1.234,56</div>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="notes" class="form-label">Notas</label>
+                 <textarea class="form-control" id="notes" name="notes" rows="2">{% if record %}{{ record.notes }}{% endif %}</textarea>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('maintenance.list_maintenance') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Programar Mantenimiento
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

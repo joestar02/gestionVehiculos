@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if record else 'Nueva' }} Autorización - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1><i class="bi bi-shield-check"></i> {{ 'Editar' if record else 'Nueva' }} Autorización de Acceso</h1>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('compliance.create_authorization') if not record else url_for('compliance.update_authorization', auth_id=record.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="vehicle_id" class="form-label">Vehículo *</label>
+                        <select class="form-select" id="vehicle_id" name="vehicle_id" required>
+                            <option value="">Seleccionar vehículo...</option>
+                            {% for vehicle in vehicles %}
+                            <option value="{{ vehicle.id }}" {% if record and record.vehicle_id == vehicle.id %}selected{% endif %}>
+                                {{ vehicle.license_plate }} - {{ vehicle.brand }} {{ vehicle.model }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="authorization_type" class="form-label">Tipo de Autorización *</label>
+                        <input type="text" class="form-control" id="authorization_type" name="authorization_type" 
+                               value="{{ record.authorization_type if record else '' }}" 
+                               placeholder="Ej: ZBE, LEZ, Acceso Centro" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="authorization_number" class="form-label">Número de Autorización *</label>
+                        <input type="text" class="form-control" id="authorization_number" name="authorization_number" 
+                               value="{{ record.authorization_number if record else '' }}" 
+                               placeholder="Ej: AUTH-2024-12345" required>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="issuing_authority" class="form-label">Autoridad Emisora *</label>
+                        <input type="text" class="form-control" id="issuing_authority" name="issuing_authority" 
+                               value="{{ record.issuing_authority if record else '' }}" 
+                               placeholder="Ej: Ayuntamiento de Sevilla" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="start_date" class="form-label">Fecha de Inicio *</label>
+                        <input type="date" class="form-control" id="start_date" name="start_date" 
+                               value="{{ record.start_date.strftime('%Y-%m-%d') if record else '' }}" required>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="end_date" class="form-label">Fecha de Vencimiento *</label>
+                        <input type="date" class="form-control" id="end_date" name="end_date" 
+                               value="{{ record.end_date.strftime('%Y-%m-%d') if record else '' }}" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="zone_description" class="form-label">Zona de Aplicación</label>
+                        <input type="text" class="form-control" id="zone_description" name="zone_description" 
+                               value="{{ record.zone_description if record else '' }}" 
+                               placeholder="Ej: Centro histórico, Zona de bajas emisiones">
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="conditions" class="form-label">Condiciones</label>
+                        <textarea class="form-control" id="conditions" name="conditions" rows="3" 
+                                  placeholder="Condiciones especiales...">{{ record.conditions if record else '' }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="notes" class="form-label">Notas Adicionales</label>
+                <textarea class="form-control" id="notes" name="notes" rows="2" 
+                          placeholder="Observaciones...">{{ record.notes if record else '' }}</textarea>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{{ url_for('compliance.authorization_records') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> {{ 'Actualizar' if record else 'Guardar' }} Autorización
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,282 @@
+/* Custom styles - Junta de Andalucía Corporate Identity - CAREFUL VERSION */
+
+/* CSS Variables for Junta de Andalucía colors */
+:root {
+    --junta-verde: #009640;
+    --junta-verde-oscuro: #006838;
+    --junta-gris: #58595B;
+    --junta-gris-claro: #E6E7E8;
+    --junta-blanco: #FFFFFF;
+}
+
+/* ONLY Junta-specific navbar styling - NO Bootstrap interference */
+.navbar.navbar-expand-lg.navbar-junta {
+    background-color: var(--junta-verde) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 1rem 0;
+}
+
+.text-primary {
+    color: var(--junta-verde) !important;
+}
+
+.form-control:focus {
+    background-color: var(--junta-verde) !important;
+    border-color: var(--junta-verde) !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 150, 64, 0.25);
+}
+
+.navbar-junta .navbar-brand {
+    color: var(--junta-blanco) !important;
+    font-weight: 600;
+    font-size: 1.3rem;
+}
+
+.navbar-junta .nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s;
+}
+
+.navbar-junta .nav-link:hover {
+    color: var(--junta-blanco) !important;
+    background-color: var(--junta-verde-oscuro) !important;
+    border-radius: 4px;
+}
+
+/* Junta dropdown styling - careful with Bootstrap compatibility */
+.navbar-junta .dropdown-menu {
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+}
+
+.navbar-junta .dropdown-item {
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.navbar-junta .dropdown-item:hover {
+    background-color: var(--junta-gris-claro);
+    color: var(--junta-gris);
+}
+
+/* ONLY Junta-specific footer styling */
+.footer-junta {
+    background-color: var(--junta-gris) !important;
+    color: var(--junta-blanco) !important;
+    padding: 2rem 0;
+    margin-top: auto;
+}
+
+.footer-junta a {
+    color: var(--junta-blanco);
+    text-decoration: none;
+}
+
+.footer-junta a:hover {
+    color: var(--junta-gris-claro);
+}
+
+/* Junta buttons - only when they have Junta-specific classes - HIGH PRIORITY */
+.btn.btn-junta-primary {
+    background-color: var(--junta-verde) !important;
+    border-color: var(--junta-verde) !important;
+    color: var(--junta-blanco) !important;
+}
+
+.btn.btn-junta-primary:hover {
+    background-color: var(--junta-verde-oscuro) !important;
+    border-color: var(--junta-verde-oscuro) !important;
+}
+
+.btn.btn-junta-secondary {
+    background-color: var(--junta-gris) !important;
+    border-color: var(--junta-gris) !important;
+    color: var(--junta-blanco) !important;
+}
+
+/* Additional Junta corporate styles for better coverage */
+.btn-primary {
+    background-color: var(--junta-verde) !important;
+    border-color: var(--junta-verde) !important;
+}
+
+.btn-primary:hover {
+    background-color: var(--junta-verde-oscuro) !important;
+    border-color: var(--junta-verde-oscuro) !important;
+}
+
+.btn-secondary {
+    background-color: var(--junta-gris) !important;
+    border-color: var(--junta-gris) !important;
+}
+
+.btn-secondary:hover {
+    background-color: var(--junta-gris-claro) !important;
+    border-color: var(--junta-gris-claro) !important;
+}
+
+/* Ensure all buttons in forms use corporate colors */
+form .btn-primary {
+    background-color: var(--junta-verde) !important;
+    border-color: var(--junta-verde) !important;
+}
+
+form .btn-secondary {
+    background-color: var(--junta-gris) !important;
+    border-color: var(--junta-gris) !important;
+}
+
+/* Junta cards - only when they have Junta-specific classes */
+.card-junta {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.card-junta-header {
+    background-color: var(--junta-gris-claro);
+    border-bottom: 3px solid var(--junta-verde);
+    font-weight: 600;
+    color: var(--junta-gris);
+}
+
+/* Junta day reservations component */
+.day-reservations {
+    background: var(--junta-blanco);
+    border: 2px solid var(--junta-verde);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.day-reservations-header {
+    background: linear-gradient(135deg, var(--junta-verde) 0%, var(--junta-verde-oscuro) 100%);
+    color: var(--junta-blanco);
+    padding: 1rem;
+    border-radius: 8px 8px 0 0;
+    margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+    text-align: center;
+}
+
+.day-reservations-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.day-reservations-body {
+    padding: 0;
+}
+
+.day-reservations-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.day-reservations-item {
+    padding: 1rem;
+    border-bottom: 1px solid var(--junta-gris-claro);
+    transition: all 0.3s ease;
+}
+
+.day-reservations-item:last-child {
+    border-bottom: none;
+}
+
+.day-reservations-item:hover {
+    background-color: rgba(0, 150, 64, 0.05);
+    border-left: 4px solid var(--junta-verde);
+    padding-left: 1.25rem;
+}
+
+.day-reservations-time {
+    font-weight: 600;
+    color: var(--junta-verde);
+    font-size: 1.1rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.day-reservations-details {
+    color: var(--junta-gris);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.day-reservations-vehicle {
+    font-weight: 600;
+    color: var(--junta-verde-oscuro);
+}
+
+.day-reservations-driver {
+    color: var(--junta-gris);
+}
+
+.day-reservations-empty {
+    text-align: center;
+    padding: 2rem;
+    color: var(--junta-gris);
+    font-style: italic;
+}
+
+.day-reservations-badge {
+    background-color: var(--junta-verde);
+    color: var(--junta-blanco);
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Ensure Bootstrap Icons display correctly */
+.bi::before,
+[class^="bi-"]::before,
+[class*=" bi-"]::before {
+    display: inline-block;
+    font-family: "bootstrap-icons" !important;
+    font-style: normal;
+    font-weight: normal !important;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    vertical-align: -.125em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Junta content wrapper styling */
+.content-wrapper {
+    margin-top: 2rem;
+    min-height: calc(100vh - 200px);
+}
+
+/* Login specific tweaks */
+.login-card {
+    border-radius: 10px;
+}
+.login-header {
+    background: transparent;
+}
+.login-logo i {
+    font-size: 2.5rem;
+}
+.text-junta-verde {
+    color: var(--junta-verde) !important;
+}
+
+/* Utility: larger icons in landing */
+.display-1 { font-size: 3.5rem; }
+
+/* Ensure large hero buttons have consistent spacing */
+.jumbotron .btn { min-width: 180px; }

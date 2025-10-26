@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if driver else 'Nuevo' }} Conductor - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1>
+            <i class="bi bi-person-badge"></i>
+            {{ 'Editar Conductor' if driver else 'Nuevo Conductor' }}
+        </h1>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            {{ csrf_token() }}
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <h5 class="mb-3">Información Personal</h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="first_name" class="form-label">Nombre *</label>
+                    <input type="text" class="form-control" id="first_name" name="first_name"
+                           value="{{ driver.first_name if driver else '' }}" required>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="last_name" class="form-label">Apellido *</label>
+                    <input type="text" class="form-control" id="last_name" name="last_name"
+                           value="{{ driver.last_name if driver else '' }}" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="document_type" class="form-label">Tipo de Documento *</label>
+                    <select class="form-select" id="document_type" name="document_type" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="DNI" {{ 'selected' if driver and driver.document_type == 'DNI' else '' }}>DNI</option>
+                        <option value="NIE" {{ 'selected' if driver and driver.document_type == 'NIE' else '' }}>NIE</option>
+                        <option value="Passport" {{ 'selected' if driver and driver.document_type == 'Passport' else '' }}>Pasaporte</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="document_number" class="form-label">Número de Documento *</label>
+                    <input type="text" class="form-control" id="document_number" name="document_number"
+                           value="{{ driver.document_number if driver else '' }}"
+                           {{ 'readonly' if driver else '' }} required>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="driver_type" class="form-label">Tipo de Conductor *</label>
+                    <select class="form-select" id="driver_type" name="driver_type" required>
+                        <option value="">Seleccionar...</option>
+                        {% for dtype in driver_types %}
+                        <option value="{{ dtype.value }}"
+                                {{ 'selected' if driver and driver.driver_type == dtype else '' }}>
+                            {{ dtype.value|t }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <h5 class="mb-3 mt-4">Licencia de Conducir</h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="driver_license_number" class="form-label">Número de Licencia *</label>
+                    <input type="text" class="form-control" id="driver_license_number" name="driver_license_number"
+                           value="{{ driver.driver_license_number if driver else '' }}" required>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="driver_license_expiry" class="form-label">Fecha de Vencimiento *</label>
+                    <input type="date" class="form-control" id="driver_license_expiry" name="driver_license_expiry"
+                           value="{{ driver.driver_license_expiry.strftime('%Y-%m-%d') if driver and driver.driver_license_expiry else '' }}" required>
+                </div>
+            </div>
+
+            <h5 class="mb-3 mt-4">Información de Contacto</h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="email" class="form-label">Email *</label>
+                    <input type="email" class="form-control" id="email" name="email"
+                           value="{{ driver.email if driver else '' }}" required>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="phone" class="form-label">Teléfono</label>
+                    <input type="tel" class="form-control" id="phone" name="phone"
+                           value="{{ driver.phone if driver else '' }}">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="address" class="form-label">Dirección</label>
+                <textarea class="form-control" id="address" name="address" rows="2">{{ driver.address if driver else '' }}</textarea>
+            </div>
+
+            <h5 class="mb-3 mt-4">Organización</h5>
+            <div class="mb-3">
+                <label for="organization_unit_id" class="form-label">Unidad Organizativa</label>
+                <select class="form-select" id="organization_unit_id" name="organization_unit_id">
+                    <option value="">Ninguna</option>
+                    {% for org in organizations %}
+                    <option value="{{ org.id }}"
+                            {{ 'selected' if driver and driver.organization_unit_id == org.id else '' }}>
+                        {{ org.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="notes" class="form-label">Notas</label>
+                <textarea class="form-control" id="notes" name="notes" rows="3">{{ driver.notes if driver else '' }}</textarea>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('drivers.list_drivers') }}" class="btn btn-junta-secondary">
+                    <i class="bi bi-arrow-left"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-junta-primary">
+                    <i class="bi bi-save"></i> {{ 'Actualizar' if driver else 'Crear' }} Conductor
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Conductores - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1><i class="bi bi-person-badge"></i> Conductores</h1>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('drivers.create_driver') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nuevo Conductor
+        </a>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <form action="{{ url_for('drivers.search_drivers') }}" method="GET" class="d-flex">
+            <input type="text" name="q" class="form-control me-2" 
+                   placeholder="Buscar por nombre, documento o licencia..." 
+                   value="{{ search_term or '' }}">
+            <button type="submit" class="btn btn-outline-primary">
+                <i class="bi bi-search"></i> Buscar
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if drivers %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Documento</th>
+                        <th>Licencia</th>
+                        <th>Vencimiento</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Contacto</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for driver in drivers %}
+                    <tr>
+                        <td>
+                            <strong>{{ driver.full_name }}</strong>
+                        </td>
+                        <td>{{ driver.document_type }}: {{ driver.document_number }}</td>
+                        <td>{{ driver.driver_license_number }}</td>
+                        <td>
+                            {% if driver.driver_license_expiry %}
+                                {{ driver.driver_license_expiry.strftime('%d/%m/%Y') }}
+                                {% if driver.driver_license_expiry < now %}
+                                    <span class="badge bg-danger">Vencida</span>
+                                {% endif %}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ driver.driver_type.value }}</span>
+                        </td>
+                        <td>
+                            {% if driver.status.value == 'active' %}
+                                <span class="badge bg-success">Activo</span>
+                            {% elif driver.status.value == 'inactive' %}
+                                <span class="badge bg-secondary">Inactivo</span>
+                            {% else %}
+                                <span class="badge bg-warning">Suspendido</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if driver.phone %}
+                                <i class="bi bi-telephone"></i> {{ driver.phone }}<br>
+                            {% endif %}
+                            {% if driver.email %}
+                                <i class="bi bi-envelope"></i> {{ driver.email }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('drivers.view_driver', driver_id=driver.id) }}" 
+                               class="btn btn-sm btn-info" title="Ver detalles">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{{ url_for('drivers.edit_driver', driver_id=driver.id) }}" 
+                               class="btn btn-sm btn-warning" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-person-badge display-1 text-muted"></i>
+            <p class="mt-3 text-muted">No hay conductores registrados.</p>
+            <a href="{{ url_for('drivers.create_driver') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Agregar Primer Conductor
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

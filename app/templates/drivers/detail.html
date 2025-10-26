@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}{{ driver.full_name }} - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1><i class="bi bi-person-badge"></i> {{ driver.full_name }}</h1>
+        <p class="text-muted">{{ driver.document_type }}: {{ driver.document_number }}</p>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('drivers.edit_driver', driver_id=driver.id) }}" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Editar
+        </a>
+                <form method="POST" action="{{ url_for('drivers.delete_driver', driver_id=driver.id) }}" 
+                            style="display: inline;" onsubmit="return confirm('¿Estás seguro de eliminar este conductor?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Eliminar
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Información Personal</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>Nombre Completo:</strong><br>
+                        {{ driver.full_name }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Documento:</strong><br>
+                        {{ driver.document_type }}: {{ driver.document_number }}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>Email:</strong><br>
+                        {{ driver.email or 'N/A' }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Teléfono:</strong><br>
+                        {{ driver.phone or 'N/A' }}
+                    </div>
+                </div>
+                
+                {% if driver.address %}
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <strong>Dirección:</strong><br>
+                        {{ driver.address }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>Tipo de Conductor:</strong><br>
+                        <span class="badge bg-info">{{ driver.driver_type.value|t }}</span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Organización:</strong><br>
+                        {% if driver.organization_unit %}
+                            {{ driver.organization_unit.name }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if driver.notes %}
+                <div class="row">
+                    <div class="col-12">
+                        <strong>Notas:</strong><br>
+                        <p class="text-muted">{{ driver.notes }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-card-list"></i> Licencia de Conducir</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>Número de Licencia:</strong><br>
+                        {{ driver.driver_license_number }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Fecha de Vencimiento:</strong><br>
+                        {{ driver.driver_license_expiry.strftime('%d/%m/%Y') if driver.driver_license_expiry else 'N/A' }}
+                        {% if driver.driver_license_expiry and driver.driver_license_expiry < now %}
+                            <span class="badge bg-danger ms-2">Vencida</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-flag"></i> Estado</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('drivers.update_status', driver_id=driver.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Estado Actual:</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="active" {{ 'selected' if driver.status.value == 'active' else '' }}>
+                                Activo
+                            </option>
+                            <option value="inactive" {{ 'selected' if driver.status.value == 'inactive' else '' }}>
+                                Inactivo
+                            </option>
+                            <option value="suspended" {{ 'selected' if driver.status.value == 'suspended' else '' }}>
+                                Suspendido
+                            </option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-arrow-repeat"></i> Actualizar Estado
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-calendar-event"></i> Fechas</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Creado:</strong><br>
+                {{ driver.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                <p class="mb-0"><strong>Actualizado:</strong><br>
+                {{ driver.updated_at.strftime('%d/%m/%Y %H:%M') }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-12">
+        <a href="{{ url_for('drivers.list_drivers') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a la Lista
+        </a>
+    </div>
+</div>
+{% endblock %}

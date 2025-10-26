@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if record else 'Nueva' }} Inspección ITV - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1><i class="bi bi-card-checklist"></i> {{ 'Editar' if record else 'Nueva' }} Inspección ITV</h1>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('compliance.create_itv') if not record else url_for('compliance.update_itv', record_id=record.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="vehicle_id" class="form-label">Vehículo *</label>
+                        <select class="form-select" id="vehicle_id" name="vehicle_id" required>
+                            <option value="">Seleccionar vehículo...</option>
+                            {% for vehicle in vehicles %}
+                            <option value="{{ vehicle.id }}" {% if record and record.vehicle_id == vehicle.id %}selected{% endif %}>
+                                {{ vehicle.license_plate }} - {{ vehicle.brand }} {{ vehicle.model }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="inspection_date" class="form-label">Fecha de Inspección *</label>
+                        <input type="date" class="form-control" id="inspection_date" name="inspection_date" 
+                               value="{{ record.inspection_date.strftime('%Y-%m-%d') if record else '' }}" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="expiry_date" class="form-label">Fecha de Vencimiento *</label>
+                        <input type="date" class="form-control" id="expiry_date" name="expiry_date" 
+                               value="{{ record.expiry_date.strftime('%Y-%m-%d') if record else '' }}" required>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="next_inspection_date" class="form-label">Próxima Inspección</label>
+                        <input type="date" class="form-control" id="next_inspection_date" name="next_inspection_date" 
+                               value="{{ record.next_inspection_date.strftime('%Y-%m-%d') if record and record.next_inspection_date else '' }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="result" class="form-label">Resultado *</label>
+                        <select class="form-select" id="result" name="result" required>
+                            <option value="">Seleccionar resultado...</option>
+                            <option value="favorable" {% if record and record.result.value == 'favorable' %}selected{% endif %}>Favorable</option>
+                            <option value="desfavorable" {% if record and record.result.value == 'desfavorable' %}selected{% endif %}>Desfavorable</option>
+                            <option value="negativa" {% if record and record.result.value == 'negativa' %}selected{% endif %}>Negativa</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Estado</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="pending" {% if record and record.status.value == 'pending' %}selected{% endif %}>Pendiente</option>
+                            <option value="passed" {% if record and record.status.value == 'passed' %}selected{% endif %}>Aprobada</option>
+                            <option value="failed" {% if record and record.status.value == 'failed' %}selected{% endif %}>No Aprobada</option>
+                            <option value="expired" {% if record and record.status.value == 'expired' %}selected{% endif %}>Vencida</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="inspection_center" class="form-label">Centro de Inspección</label>
+                        <input type="text" class="form-control" id="inspection_center" name="inspection_center" 
+                               value="{{ record.inspection_center if record else '' }}" placeholder="Nombre del centro ITV">
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="inspector_name" class="form-label">Inspector</label>
+                        <input type="text" class="form-control" id="inspector_name" name="inspector_name" 
+                               value="{{ record.inspector_name if record else '' }}" placeholder="Nombre del inspector">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="certificate_number" class="form-label">Número de Certificado</label>
+                        <input type="text" class="form-control" id="certificate_number" name="certificate_number" 
+                               value="{{ record.certificate_number if record else '' }}" placeholder="Ej: ITV-2024-12345">
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="cost" class="form-label">Costo (€)</label>
+                        <input type="number" step="0.01" class="form-control" id="cost" name="cost" 
+                               value="{{ record.cost if record else '' }}" placeholder="0.00">
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="mileage_at_inspection" class="form-label">Kilometraje</label>
+                        <input type="number" class="form-control" id="mileage_at_inspection" name="mileage_at_inspection" 
+                               value="{{ record.mileage_at_inspection if record else '' }}" placeholder="0">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="defects_severity" class="form-label">Gravedad de Defectos</label>
+                        <select class="form-select" id="defects_severity" name="defects_severity">
+                            <option value="">Sin defectos</option>
+                            <option value="leve" {% if record and record.defects_severity == 'leve' %}selected{% endif %}>Leve</option>
+                            <option value="grave" {% if record and record.defects_severity == 'grave' %}selected{% endif %}>Grave</option>
+                            <option value="muy_grave" {% if record and record.defects_severity == 'muy_grave' %}selected{% endif %}>Muy Grave</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="defects_found" class="form-label">Defectos Encontrados</label>
+                <textarea class="form-control" id="defects_found" name="defects_found" rows="3" 
+                          placeholder="Descripción de los defectos encontrados...">{{ record.defects_found if record else '' }}</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="notes" class="form-label">Notas Adicionales</label>
+                <textarea class="form-control" id="notes" name="notes" rows="3" 
+                          placeholder="Observaciones adicionales...">{{ record.notes if record else '' }}</textarea>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{{ url_for('compliance.itv_records') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> {{ 'Actualizar' if record else 'Guardar' }} Registro
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

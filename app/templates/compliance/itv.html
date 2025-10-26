@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Registros ITV - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1><i class="bi bi-card-checklist"></i> Registros de ITV</h1>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('compliance.create_itv') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nuevo Registro ITV
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if records %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Vehículo</th>
+                        <th>Fecha Inspección</th>
+                        <th>Fecha Vencimiento</th>
+                        <th>Resultado</th>
+                        <th>Centro</th>
+                        <th>Costo</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td>{{ record.vehicle.license_plate if record.vehicle else 'N/A' }}</td>
+                        <td>{{ record.inspection_date.strftime('%d/%m/%Y') }}</td>
+                        <td>
+                            {{ record.expiry_date.strftime('%d/%m/%Y') }}
+                            {% if record.is_expired %}
+                                <span class="badge bg-danger">Vencida</span>
+                            {% elif record.days_until_expiry and record.days_until_expiry <= 30 %}
+                                <span class="badge bg-warning">{{ record.days_until_expiry }} días</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if record.result.value == 'favorable' %}
+                                <span class="badge bg-success">Favorable</span>
+                            {% elif record.result.value == 'desfavorable' %}
+                                <span class="badge bg-warning">Desfavorable</span>
+                            {% else %}
+                                <span class="badge bg-danger">Negativa</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ record.inspection_center or 'N/A' }}</td>
+                        <td>{{ "€{:,.2f}".format(record.cost) if record.cost else 'N/A' }}</td>
+                        <td>
+                            {% if record.status.value == 'passed' %}
+                                <span class="badge bg-success">Aprobada</span>
+                            {% elif record.status.value == 'failed' %}
+                                <span class="badge bg-danger">No Aprobada</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ record.status.value }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('compliance.view_itv', record_id=record.id) }}" class="btn btn-sm btn-info" title="Ver detalles">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{{ url_for('compliance.edit_itv', record_id=record.id) }}" class="btn btn-sm btn-warning" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-card-checklist display-1 text-muted"></i>
+            <p class="mt-3 text-muted">No hay registros de ITV.</p>
+            <a href="{{ url_for('compliance.create_itv') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Crear Primer Registro
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<a href="{{ url_for('compliance.compliance_dashboard') }}" class="btn btn-secondary mt-3">
+    <i class="bi bi-arrow-left"></i> Volver al Dashboard
+</a>
+{% endblock %}

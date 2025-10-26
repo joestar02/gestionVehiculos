@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if organization else 'Nueva' }} Organización - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1><i class="bi bi-building"></i> {{ 'Editar Organización' if organization else 'Nueva Organización' }}</h1>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="name" class="form-label">Nombre *</label>
+                    <input type="text" class="form-control" id="name" name="name" 
+                           value="{{ organization.name if organization else '' }}" required>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="code" class="form-label">Código *</label>
+                    <input type="text" class="form-control" id="code" name="code" 
+                           value="{{ organization.code if organization else '' }}" 
+                           {{ 'readonly' if organization else '' }} required>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="description" class="form-label">Descripción</label>
+                <textarea class="form-control" id="description" name="description" rows="3">{{ organization.description if organization else '' }}</textarea>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="manager_name" class="form-label">Nombre del Responsable</label>
+                    <input type="text" class="form-control" id="manager_name" name="manager_name" 
+                           value="{{ organization.manager_name if organization else '' }}">
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="parent_id" class="form-label">Organización Padre</label>
+                    <div class="input-group mb-2">
+                        <input type="text" id="search-org" class="form-control" placeholder="Buscar organización...">
+                    </div>
+                    <div class="jstree-proton-container">
+                        <div id="org-tree" style="min-height: 200px; max-height: 300px; overflow-y: auto;">
+                            <!-- Tree will be loaded here -->
+                        </div>
+                    </div>
+                    <input type="hidden" id="parent_id" name="parent_id" value="{{ organization.parent_id if organization else '' }}">
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="contact_email" class="form-label">Email de Contacto</label>
+                    <input type="email" class="form-control" id="contact_email" name="contact_email" 
+                           value="{{ organization.contact_email if organization else '' }}">
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="contact_phone" class="form-label">Teléfono de Contacto</label>
+                    <input type="tel" class="form-control" id="contact_phone" name="contact_phone" 
+                           value="{{ organization.contact_phone if organization else '' }}">
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('organizations.list_organizations') }}" class="btn btn-junta-secondary">
+                    <i class="bi bi-arrow-left"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-junta-primary">
+                    <i class="bi bi-save"></i> {{ 'Actualizar' if organization else 'Crear' }} Organización
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<!-- jsTree Proton Theme -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jstree@3.3.12/dist/themes/proton/style.min.css" />
+<style>
+/* Completely reset any conflicting styles */
+.jstree-proton-container {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    background: #fff;
+}
+
+/* Force Proton theme styles */
+.jstree-proton-container .jstree {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+    background: #fff !important;
+    color: #2c3e50 !important;
+}
+
+.jstree-proton-container .jstree-anchor {
+    line-height: 24px !important;
+    height: 24px !important;
+    color: #2c3e50 !important;
+}
+
+.jstree-proton-container .jstree-anchor > .jstree-icon {
+    background-position: center !important;
+    margin-right: 5px !important;
+}
+
+.jstree-proton-container .jstree-anchor:hover, 
+.jstree-proton-container .jstree-anchor:focus {
+    background-color: #f1f5fd !important;
+    color: #2c3e50 !important;
+}
+
+.jstree-proton-container .jstree-clicked {
+    background: #e0eafc !important;
+    color: #2c3e50 !important;
+    border-radius: 2px !important;
+    box-shadow: none !important;
+}
+
+.jstree-proton-container .jstree-wholerow-clicked {
+    background: #e0eafc !important;
+}
+
+/* Ensure the tree is properly spaced */
+.jstree-proton-container .jstree-container-ul > .jstree-node {
+    margin-left: 0 !important;
+}
+
+/* Fix for icons */
+.jstree-proton-container .jstree-themeicon {
+    background-position: center !important;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jstree@3.3.12/dist/jstree.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Initialize the organization tree
+    $('#org-tree').jstree({
+        'core': {
+            'data': [
+                {
+                    'id': 'none',
+                    'text': 'Ninguna (Nivel superior)',
+                    'state': { 'selected': {{ 'true' if not organization or not organization.parent_id else 'false' }}},
+                    'icon': 'bi bi-house'
+                },
+                {% for org in organizations %}
+                {% if not organization or org.id != organization.id %}
+                {
+                    'id': '{{ org.id }}',
+                    'parent': '{{ org.parent_id if org.parent_id else 'none' }}',
+                    'text': '{{ org.name }}',
+                    'state': { 
+                        'selected': {{ 'true' if organization and organization.parent_id == org.id else 'false' }},
+                        'opened': true
+                    },
+                    'icon': 'bi bi-diagram-3'
+                }{% if not loop.last %},{% endif %}
+                {% endif %}
+                {% endfor %}
+            ],
+            'themes': {
+                'name': 'proton',
+                'responsive': true,
+                'dots': true,
+                'icons': true,
+                'stripes': true,
+                'theme': 'proton',
+                'url': 'https://cdn.jsdelivr.net/npm/jstree@3.3.12/dist/themes/proton/style.min.css'
+            },
+            'force_text': true,
+            'check_callback': true
+        },
+        'plugins': ['wholerow', 'types', 'search'],
+        'types': {
+            'default': {
+                'icon': 'bi bi-diagram-3'
+            }
+        },
+        'search': {
+            'case_insensitive': true,
+            'show_only_matches': true
+        }
+    });
+
+    // Handle node selection
+    $('#org-tree').on('select_node.jstree', function(e, data) {
+        const node = data.node;
+        // Update the hidden input with the selected organization ID
+        $('#parent_id').val(node.id === 'none' ? '' : node.id);
+    });
+
+    // Expand all nodes when tree is ready
+    $('#org-tree').on('ready.jstree', function() {
+        $(this).jstree('open_all');
+    });
+
+    // Add search functionality
+    $('#search-org').on('keyup', function() {
+        const searchTerm = $(this).val();
+        $('#org-tree').jstree('search', searchTerm);
+    });
+});
+</script>
+{% endblock %}

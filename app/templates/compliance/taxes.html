@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Impuestos - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1><i class="bi bi-currency-euro"></i> Registros de Impuestos</h1>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('compliance.create_tax') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nuevo Registro de Impuesto
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if records %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Vehículo</th>
+                        <th>Tipo</th>
+                        <th>Año</th>
+                        <th>Importe</th>
+                        <th>Fecha Vencimiento</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td>{{ record.vehicle.license_plate if record.vehicle else 'N/A' }}</td>
+                        <td><span class="badge bg-info">{{ record.tax_type.value.upper() }}</span></td>
+                        <td>{{ record.tax_year }}</td>
+                        <td><strong>€{{ "{:,.2f}".format(record.amount) }}</strong></td>
+                        <td>
+                            {{ record.due_date.strftime('%d/%m/%Y') }}
+                            {% if record.payment_status.value == 'pending' and record.due_date < now %}
+                                <span class="badge bg-danger">Vencido</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if record.payment_status.value == 'paid' %}
+                                <span class="badge bg-success">Pagado</span>
+                            {% elif record.payment_status.value == 'pending' %}
+                                <span class="badge bg-warning">Pendiente</span>
+                            {% elif record.payment_status.value == 'overdue' %}
+                                <span class="badge bg-danger">Vencido</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ record.payment_status.value }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('compliance.view_tax', tax_id=record.id) }}" class="btn btn-sm btn-info" title="Ver detalles">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{{ url_for('compliance.edit_tax', tax_id=record.id) }}" class="btn btn-sm btn-warning" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-currency-euro display-1 text-muted"></i>
+            <p class="mt-3 text-muted">No hay registros de impuestos.</p>
+            <a href="{{ url_for('compliance.create_tax') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Crear Primer Registro
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<a href="{{ url_for('compliance.compliance_dashboard') }}" class="btn btn-secondary mt-3">
+    <i class="bi bi-arrow-left"></i> Volver al Dashboard
+</a>
+{% endblock %}

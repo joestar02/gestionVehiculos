@@ -1,0 +1,34 @@
+# Flask and web framework
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-Login==0.6.3
+Flask-WTF>=2.3.3
+WTForms==3.1.1
+Flask-Limiter==3.5.0
+Flask-Talisman==1.1.0
+
+# WSGI Server
+gunicorn==21.2.0
+
+# Database
+sqlalchemy==2.0.23
+alembic==1.12.1
+psycopg2-binary==2.9.9
+
+# Security
+Flask-Bcrypt==1.0.1
+PyJWT==2.8.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.1.1
+
+# Email validation
+email-validator==2.1.0
+
+# Environment variables
+python-dotenv==1.0.0
+
+# Additional utilities
+Werkzeug==3.0.1
+
+# Production server utilities
+gevent==23.9.1

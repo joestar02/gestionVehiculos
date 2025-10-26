@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if record else 'Nueva' }} Multa - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1><i class="bi bi-exclamation-triangle"></i> {{ 'Editar' if record else 'Registrar' }} Multa</h1>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('compliance.create_fine') if not record else url_for('compliance.update_fine', fine_id=record.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="vehicle_id" class="form-label">Vehículo *</label>
+                        <select class="form-select" id="vehicle_id" name="vehicle_id" required>
+                            <option value="">Seleccionar vehículo...</option>
+                            {% for vehicle in vehicles %}
+                            <option value="{{ vehicle.id }}" {% if record and record.vehicle_id == vehicle.id %}selected{% endif %}>
+                                {{ vehicle.license_plate }} - {{ vehicle.brand }} {{ vehicle.model }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="driver_id" class="form-label">Conductor</label>
+                        <select class="form-select" id="driver_id" name="driver_id">
+                            <option value="">No especificado</option>
+                            {% for driver in drivers %}
+                            <option value="{{ driver.id }}" {% if record and record.driver_id == driver.id %}selected{% endif %}>
+                                {{ driver.first_name }} {{ driver.last_name }} - {{ driver.license_number }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="fine_number" class="form-label">Número de Multa *</label>
+                        <input type="text" class="form-control" id="fine_number" name="fine_number" 
+                               value="{{ record.fine_number if record else '' }}" placeholder="Ej: M-2024-123456" required>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="fine_type" class="form-label">Tipo de Multa *</label>
+                        <select class="form-select" id="fine_type" name="fine_type" required>
+                            <option value="">Seleccionar tipo...</option>
+                            <option value="speeding" {% if record and record.fine_type.value == 'speeding' %}selected{% endif %}>Exceso de Velocidad</option>
+                            <option value="parking" {% if record and record.fine_type.value == 'parking' %}selected{% endif %}>Estacionamiento</option>
+                            <option value="traffic_light" {% if record and record.fine_type.value == 'traffic_light' %}selected{% endif %}>Semáforo</option>
+                            <option value="documentation" {% if record and record.fine_type.value == 'documentation' %}selected{% endif %}>Documentación</option>
+                            <option value="other" {% if record and record.fine_type.value == 'other' %}selected{% endif %}>Otra</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="fine_date" class="form-label">Fecha de la Infracción *</label>
+                        <input type="date" class="form-control" id="fine_date" name="fine_date" 
+                               value="{{ record.fine_date.strftime('%Y-%m-%d') if record else '' }}" required>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="location" class="form-label">Ubicación</label>
+                        <input type="text" class="form-control" id="location" name="location" 
+                               value="{{ record.location if record else '' }}" placeholder="Lugar de la infracción">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">Importe (€) *</label>
+                        <input type="number" step="0.01" class="form-control" id="amount" name="amount" 
+                               value="{{ record.amount if record else '' }}" placeholder="0.00" required>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="reduced_amount" class="form-label">Importe Reducido (€)</label>
+                        <input type="number" step="0.01" class="form-control" id="reduced_amount" name="reduced_amount" 
+                               value="{{ record.reduced_amount if record else '' }}" placeholder="0.00">
+                        <small class="text-muted">Pago pronto (50% descuento)</small>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="payment_deadline" class="form-label">Plazo de Pago</label>
+                        <input type="date" class="form-control" id="payment_deadline" name="payment_deadline" 
+                               value="{{ record.payment_deadline.strftime('%Y-%m-%d') if record and record.payment_deadline else '' }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Estado *</label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="pending" {% if record and record.status.value == 'pending' %}selected{% endif %}>Pendiente</option>
+                            <option value="paid" {% if record and record.status.value == 'paid' %}selected{% endif %}>Pagada</option>
+                            <option value="appealed" {% if record and record.status.value == 'appealed' %}selected{% endif %}>Recurrida</option>
+                            <option value="dismissed" {% if record and record.status.value == 'dismissed' %}selected{% endif %}>Anulada</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="issuing_authority" class="form-label">Autoridad Emisora</label>
+                        <input type="text" class="form-control" id="issuing_authority" name="issuing_authority" 
+                               value="{{ record.issuing_authority if record else '' }}" placeholder="Ej: DGT, Policía Local">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label">Descripción de la Infracción</label>
+                <textarea class="form-control" id="description" name="description" rows="3" 
+                          placeholder="Detalles de la infracción...">{{ record.description if record else '' }}</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="notes" class="form-label">Notas Adicionales</label>
+                <textarea class="form-control" id="notes" name="notes" rows="2" 
+                          placeholder="Observaciones...">{{ record.notes if record else '' }}</textarea>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{{ url_for('compliance.fine_records') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> {{ 'Actualizar' if record else 'Guardar' }} Multa
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

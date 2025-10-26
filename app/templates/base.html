@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ app_name }}{% endblock %}</title>
+
+    <!-- CSRF Protection -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}?v=4.0">
+    
+    {% block extra_css %}{% endblock %}
+    
+    <style>
+    </style>
+</head>
+<body>
+    <!-- Navigation - Estilo Junta de Andalucía -->
+    <nav class="navbar navbar-expand-lg navbar-junta">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('main.dashboard') if current_user.is_authenticated else url_for('auth.login') }}">
+                <i class="bi bi-truck me-2"></i>
+                <div>
+                    <div style="font-size: 1.1rem;">Sistema de Gestión de Flota</div>
+                    <small style="font-size: 0.75rem; opacity: 0.9;">Junta de Andalucía</small>
+                </div>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto ms-4">
+                    {% if current_user.is_authenticated %}
+                    {% if current_user.role.value == 'driver' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('drivers.driver_dashboard') }}">
+                            <i class="bi bi-speedometer2"></i> Mi Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('drivers.my_reservations') }}">
+                            <i class="bi bi-calendar-check"></i> Mis Reservas
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.dashboard') }}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li><a class="nav-link" href="{{ url_for('reservations.list_reservations') }}">
+                             <i class="bi bi-calendar-check"></i> Reservas
+                        </a>
+                    </li>                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('vehicles.list_vehicles') }}">
+                            <i class="bi bi-car-front"></i> Vehículos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('drivers.list_drivers') }}">
+                            <i class="bi bi-person-badge"></i> Conductores
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="driversDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-gear"></i> Gestión
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="driversDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('assignments.list_assignments') }}">
+                                <i class="bi bi-person-check"></i> Asignaciones
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('organizations.list_organizations') }}">
+                                <i class="bi bi-building"></i> Organizaciones
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('providers.list_providers') }}">
+                                <i class="bi bi-gear"></i> Proveedores
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('assignments.cesion_records') }}">
+                                <i class="bi bi-arrow-right"></i> Cesión de Vehículos
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('compliance.compliance_dashboard') }}">
+                                <i class="bi bi-clipboard-check"></i> Cumplimiento
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    {% endif %}
+                </ul>
+                <ul class="navbar-nav">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> {{ current_user.full_name }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> Mi Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                                <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="container mt-3">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <div class="content-wrapper">
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer-junta text-center">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <p class="mb-0">
+                        <small>Sistema de Gestión de Flota</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

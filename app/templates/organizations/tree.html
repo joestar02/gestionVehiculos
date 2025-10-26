@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Organizaciones - Vista en Árbol{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jstree@3.3.12/dist/themes/default/style.min.css" />
+<style>
+    #jstree {
+        margin: 20px 0;
+        background: #fff;
+        min-height: 400px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 10px;
+    }
+    .jstree-anchor {
+        font-size: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-diagram-3"></i> Árbol de Organizaciones</h1>
+        <div>
+            <a id="create-org" href="#" class="btn btn-primary me-2">
+                <i class="bi bi-plus-circle"></i> Nueva Organización
+            </a>
+            <a id="edit-org" href="#" class="btn btn-outline-secondary me-2" disabled>
+                <i class="bi bi-pencil"></i> Editar
+            </a>
+            <a id="delete-org" href="#" class="btn btn-outline-danger" disabled>
+                <i class="bi bi-trash"></i> Eliminar
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div id="jstree">
+                
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jstree@3.3.12/dist/jstree.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Initialize the tree
+    $('#jstree').jstree({
+        'core': {
+            'data': {{ org_tree | safe }},
+            'themes': {
+                'name': 'default',
+                'responsive': true,
+                'variant': 'large'
+            },
+            'check_callback': true
+        },
+        'plugins': ['types', 'wholerow', 'search']
+    });
+
+    // Handle refresh button
+    $('#refresh-tree').click(function() {
+        $('#jstree').jstree(true).refresh();
+    });
+
+    // Handle node selection
+    $('#jstree').on('select_node.jstree', function(e, data) {
+        const node = data.node;
+        // Store selected node ID in a data attribute for easy access
+        $('#edit-org, #delete-org')
+            .prop('disabled', false)
+            .data('org-id', node.id.replace('org_', ''));
+    });
+
+    // Handle create button
+    $('#create-org').click(function(e) {
+        e.preventDefault();
+        const selectedNode = $('#org-tree').jstree('get_selected', true)[0];
+        const parentId = selectedNode ? selectedNode.id.replace('org_', '') : '';
+        window.location.href = "{{ url_for('organizations.create_organization') }}" + 
+            (parentId ? '?parent_id=' + parentId : '');
+    });
+
+    // Handle edit button
+    $('#edit-org').click(function(e) {
+        e.preventDefault();
+        const selectedNode = $('#jstree').jstree('get_selected', true)[0];
+        if (selectedNode) {
+            const orgId = selectedNode.id.replace('org_', '');
+            window.location.href = "{{ url_for('organizations.edit_organization', org_id=0) }}"
+                .replace('/0', '/' + orgId);
+        } else {
+            alert('Por favor, seleccione una organización para editar');
+        }
+    });
+
+    // Handle delete button
+    $('#delete-org').click(function(e) {
+        e.preventDefault();
+        const selectedNode = $('#org-tree').jstree('get_selected', true)[0];
+        if (selectedNode && confirm('¿Está seguro de que desea eliminar esta organización?')) {
+            window.location.href = "{{ url_for('organizations.delete_organization', org_id=0) }}"
+                .replace('/0', '/' + selectedNode.id.replace('org_', ''));
+        }
+    });
+
+    // Handle search
+    let searchTimer = false;
+    $('#search-tree').on('keyup', function() {
+        if (searchTimer) { clearTimeout(searchTimer); }
+        searchTimer = setTimeout(function() {
+            const searchTerm = $('#search-tree').val();
+            $('#jstree').jstree(true).search(searchTerm);
+        }, 300);
+    });
+
+    // Expand all nodes when tree is ready
+    $('#jstree')
+        .on('ready.jstree', function () {
+            $(this).jstree('open_all');
+        })
+        .show();
+});
+</script>
+{% endblock %}

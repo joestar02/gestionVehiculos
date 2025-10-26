@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Test Bootstrap - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="bi bi-check-circle"></i> Test Bootstrap Components
+        </h1>
+    </div>
+</div>
+
+<!-- Test Bootstrap Icons -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-star"></i> Bootstrap Icons Test</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <i class="bi bi-house-door" style="font-size: 2rem;"></i>
+                        <span class="ms-2">House</span>
+                    </div>
+                    <div class="col-md-3">
+                        <i class="bi bi-car-front" style="font-size: 2rem;"></i>
+                        <span class="ms-2">Car</span>
+                    </div>
+                    <div class="col-md-3">
+                        <i class="bi bi-person-badge" style="font-size: 2rem;"></i>
+                        <span class="ms-2">Person</span>
+                    </div>
+                    <div class="col-md-3">
+                        <i class="bi bi-gear" style="font-size: 2rem;"></i>
+                        <span class="ms-2">Settings</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Test Bootstrap Buttons -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-hand-thumbs-up"></i> Bootstrap Buttons Test</h5>
+            </div>
+            <div class="card-body">
+                <button type="button" class="btn btn-primary">Primary Button</button>
+                <button type="button" class="btn btn-secondary">Secondary Button</button>
+                <button type="button" class="btn btn-success">Success Button</button>
+                <button type="button" class="btn btn-outline-primary">Outline Button</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Test Bootstrap Dropdown -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-chevron-down"></i> Bootstrap Dropdown Test</h5>
+            </div>
+            <div class="card-body">
+                <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        Test Dropdown
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#">Action 1</a></li>
+                        <li><a class="dropdown-item" href="#">Action 2</a></li>
+                        <li><a class="dropdown-item" href="#">Action 3</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Test Junta Colors -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-palette"></i> Junta de Andalucía Colors</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div style="background-color: var(--junta-verde); color: white; padding: 1rem; border-radius: 4px;">
+                            Verde Junta: #009640
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div style="background-color: var(--junta-verde-oscuro); color: white; padding: 1rem; border-radius: 4px;">
+                            Verde Oscuro: #006838
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div style="background-color: var(--junta-gris); color: white; padding: 1rem; border-radius: 4px;">
+                            Gris: #58595B
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div style="background-color: var(--junta-gris-claro); color: var(--junta-gris); padding: 1rem; border-radius: 4px;">
+                            Gris Claro: #E6E7E8
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

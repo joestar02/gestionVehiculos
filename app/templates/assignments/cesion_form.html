@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}{% if record %}Editar{% else %}Nueva{% endif %} Cesión de Vehículo{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            
+        </nav>
+
+        <h1 class="mb-4">
+            <i class="bi bi-clipboard-check"></i> {% if record %}Editar{% else %}Nueva{% endif %} Cesión de Vehículo
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Datos de la Cesión</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="vehicle_id" class="form-label">Vehículo</label>
+                            <select name="vehicle_id" id="vehicle_id" class="form-select" required>
+                                <option value="">Seleccionar vehículo...</option>
+                                {% for vehicle in vehicles %}
+                                <option value="{{ vehicle.id }}" {% if record and record.vehicle_id == vehicle.id %}selected{% endif %}>
+                                    {{ vehicle.license_plate }} - {{ vehicle.make }} {{ vehicle.model }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="driver_id" class="form-label">Conductor</label>
+                            <select name="driver_id" id="driver_id" class="form-select" required>
+                                <option value="">Seleccionar conductor...</option>
+                                {% for driver in drivers %}
+                                <option value="{{ driver.id }}" {% if record and record.driver_id == driver.id %}selected{% endif %}>
+                                    {{ driver.full_name }} - {{ driver.document_number }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="organization_unit_id" class="form-label">Unidad Organizacional</label>
+                            <select name="organization_unit_id" id="organization_unit_id" class="form-select" required>
+                                <option value="">Seleccionar unidad...</option>
+                                {% for org in organization_units %}
+                                <option value="{{ org.id }}" {% if record and record.organization_unit_id == org.id %}selected{% endif %}>
+                                    {{ org.code }} - {{ org.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="assignment_type" class="form-label">Tipo de Asignación</label>
+                            <select name="assignment_type" id="assignment_type" class="form-select" required>
+                                <option value="">Seleccionar tipo...</option>
+                                {% for type in assignment_types %}
+                                <option value="{{ type.value }}" {% if record and record.assignment_type == type %}selected{% endif %}>
+                                    {{ type.value.replace('_', ' ').title() }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="start_date" class="form-label">Fecha de Inicio</label>
+                            <input type="date" name="start_date" id="start_date" class="form-control" required
+                                   value="{% if record %}{{ record.start_date.strftime('%Y-%m-%d') }}{% endif %}">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="end_date" class="form-label">Fecha de Fin</label>
+                            <input type="date" name="end_date" id="end_date" class="form-control" required
+                                   value="{% if record %}{{ record.end_date.strftime('%Y-%m-%d') }}{% endif %}">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="assignment_fee" class="form-label">Costo de Cesión (€)</label>
+                            <input type="number" step="0.01" name="assignment_fee" id="assignment_fee" class="form-control" required
+                                   value="{% if record %}{{ record.assignment_fee }}{% endif %}">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="purpose" class="form-label">Propósito</label>
+                            <input type="text" name="purpose" id="purpose" class="form-control" required
+                                   value="{% if record %}{{ record.purpose }}{% endif %}">
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label for="destination" class="form-label">Destino</label>
+                            <input type="text" name="destination" id="destination" class="form-control"
+                                   value="{% if record %}{{ record.destination }}{% endif %}">
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label for="notes" class="form-label">Notas</label>
+                            <textarea name="notes" id="notes" class="form-control" rows="3">{% if record %}{{ record.notes }}{% endif %}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('assignments.cesion_records') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> {% if record %}Actualizar{% else %}Crear{% endif %} Cesión
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

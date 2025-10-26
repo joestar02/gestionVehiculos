@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if provider else 'Nuevo' }} Proveedor - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('providers.list_providers') }}">
+                        <i class="bi bi-building"></i> Proveedores
+                    </a>
+                </li>
+                <li class="breadcrumb-item active">{{ 'Editar' if provider else 'Nuevo' }} Proveedor</li>
+            </ol>
+        </nav>
+
+        <h1 class="mb-4">
+            <i class="bi bi-building"></i> {{ 'Editar Proveedor' if provider else 'Nuevo Proveedor' }}
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Datos del Proveedor</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Nombre *</label>
+                            <input type="text" class="form-control" id="name" name="name"
+                                   value="{{ provider.name if provider else '' }}" required>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="provider_type" class="form-label">Tipo de Proveedor *</label>
+                            <select class="form-select" id="provider_type" name="provider_type" required>
+                                <option value="">Seleccionar...</option>
+                                {% for ptype in provider_types %}
+                                <option value="{{ ptype.value }}"
+                                        {{ 'selected' if provider and provider.provider_type == ptype else '' }}>
+                                    {{ ptype.value.replace('_', ' ').title() }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="contact_person" class="form-label">Persona de Contacto</label>
+                            <input type="text" class="form-control" id="contact_person" name="contact_person"
+                                   value="{{ provider.contact_person if provider else '' }}">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">Teléfono</label>
+                            <input type="tel" class="form-control" id="phone" name="phone"
+                                   value="{{ provider.phone if provider else '' }}">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                   value="{{ provider.email if provider else '' }}">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="website" class="form-label">Sitio Web</label>
+                            <input type="url" class="form-control" id="website" name="website"
+                                   value="{{ provider.website if provider else '' }}"
+                                   placeholder="https://ejemplo.com">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Dirección</label>
+                        <textarea class="form-control" id="address" name="address" rows="2">{{ provider.address if provider else '' }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notas</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3">{{ provider.notes if provider else '' }}</textarea>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('providers.list_providers') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> {{ 'Actualizar' if provider else 'Crear' }} Proveedor
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

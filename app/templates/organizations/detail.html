@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}{{ organization.name }} - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1><i class="bi bi-building"></i> {{ organization.name }}</h1>
+        <p class="text-muted">Código: {{ organization.code }}</p>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('organizations.edit_organization', org_id=organization.id) }}" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Editar
+        </a>
+                <form method="POST" action="{{ url_for('organizations.delete_organization', org_id=organization.id) }}" 
+                            style="display: inline;" onsubmit="return confirm('¿Estás seguro de eliminar esta organización?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Eliminar
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Información</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>Nombre:</strong><br>
+                        {{ organization.name }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Código:</strong><br>
+                        <span class="badge bg-primary">{{ organization.code }}</span>
+                    </div>
+                </div>
+                
+                {% if organization.description %}
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <strong>Descripción:</strong><br>
+                        {{ organization.description }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>Responsable:</strong><br>
+                        {{ organization.manager_name or 'N/A' }}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>Email de Contacto:</strong><br>
+                        {{ organization.contact_email or 'N/A' }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Teléfono:</strong><br>
+                        {{ organization.contact_phone or 'N/A' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-car-front"></i> Vehículos Asignados</h5>
+            </div>
+            <div class="card-body">
+                {% if organization.vehicles %}
+                <ul class="list-group">
+                    {% for vehicle in organization.vehicles %}
+                    <li class="list-group-item">
+                        <a href="{{ url_for('vehicles.view_vehicle', vehicle_id=vehicle.id) }}">
+                            {{ vehicle.license_plate }} - {{ vehicle.make }} {{ vehicle.model }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted">No hay vehículos asignados.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-calendar-event"></i> Fechas</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Creado:</strong><br>
+                {{ organization.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                <p class="mb-0"><strong>Actualizado:</strong><br>
+                {{ organization.updated_at.strftime('%d/%m/%Y %H:%M') }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-12">
+        <a href="{{ url_for('organizations.list_organizations') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a la Lista
+        </a>
+    </div>
+</div>
+{% endblock %}

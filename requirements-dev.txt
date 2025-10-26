@@ -1,0 +1,9 @@
+# Development and testing dependencies
+pytest==7.4.0
+pytest-cov==4.1.0
+pytest-mock==3.11.1
+coverage==7.2.7
+
+# Additional testing tools
+faker==18.11.2  # For generating fake test data
+responses==0.23.3  # For mocking HTTP requests

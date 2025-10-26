@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Página No Encontrada - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+        <i class="bi bi-exclamation-triangle display-1 text-warning"></i>
+        <h1 class="display-4 mt-4">400</h1>
+        <h2>Error en la petición</h2>
+        <p class="lead text-muted">Lo sentimos, se ha producido un error en la petición.</p>
+        <a href="{{ url_for('main.index') }}" class="btn btn-primary mt-3">
+            <i class="bi bi-house"></i> Volver al Inicio
+        </a>
+    </div>
+</div>
+{% endblock %}

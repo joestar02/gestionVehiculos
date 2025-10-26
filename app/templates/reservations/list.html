@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Reservas - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1><i class="bi bi-calendar-check"></i> Reservas</h1>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('reservations.create_reservation') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nueva Reserva
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if reservations %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Vehículo</th>
+                        <th>Conductor</th>
+                        <th>Fecha Inicio</th>
+                        <th>Fecha Fin</th>
+                        <th>Propósito</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reservation in reservations %}
+                    <tr>
+                        <td><strong>#{{ reservation.id }}</strong></td>
+                        <td>{{ reservation.vehicle.license_plate if reservation.vehicle else 'N/A' }}</td>
+                        <td>{{ reservation.driver.full_name if reservation.driver else 'N/A' }}</td>
+                        <td>{{ reservation.start_date.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>{{ reservation.end_date.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>{{ reservation.purpose[:30] }}...</td>
+                        <td>
+                            {% if reservation.status.value == 'pending' %}
+                                <span class="badge bg-warning">Pendiente</span>
+                            {% elif reservation.status.value == 'confirmed' %}
+                                <span class="badge bg-info">Confirmada</span>
+                            {% elif reservation.status.value == 'in_progress' %}
+                                <span class="badge bg-primary">En Curso</span>
+                            {% elif reservation.status.value == 'completed' %}
+                                <span class="badge bg-success">Completada</span>
+                            {% else %}
+                                <span class="badge bg-danger">Cancelada</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('reservations.view_reservation', reservation_id=reservation.id) }}" class="btn btn-sm btn-info" title="Ver detalles">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{{ url_for('reservations.edit_reservation', reservation_id=reservation.id) }}" class="btn btn-sm btn-warning" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-calendar-check display-1 text-muted"></i>
+            <p class="mt-3 text-muted">No hay reservas registradas.</p>
+            <a href="{{ url_for('reservations.create_reservation') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Crear Primera Reserva
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

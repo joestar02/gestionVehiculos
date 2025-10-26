@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}Reserva #{{ reservation.id }} - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1><i class="bi bi-calendar-check"></i> Reserva #{{ reservation.id }}</h1>
+        <p class="text-muted">{{ reservation.vehicle.license_plate if reservation.vehicle else 'N/A' }}</p>
+    </div>
+    <div class="col-md-6 text-end">
+        {% if reservation.status.value == 'pending' %}
+        <form method="POST" action="{{ url_for('reservations.confirm_reservation', reservation_id=reservation.id) }}" style="display: inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-circle"></i> Confirmar
+            </button>
+        </form>
+        {% endif %}
+        
+        {% if reservation.status.value in ['pending', 'confirmed'] %}
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
+            <i class="bi bi-x-circle"></i> Cancelar
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Información de la Reserva</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>Vehículo:</strong><br>
+                        {% if reservation.vehicle %}
+                            <a href="{{ url_for('vehicles.view_vehicle', vehicle_id=reservation.vehicle.id) }}">
+                                {{ reservation.vehicle.license_plate }} - {{ reservation.vehicle.make }} {{ reservation.vehicle.model }}
+                            </a>
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Conductor:</strong><br>
+                        {% if reservation.driver %}
+                            <a href="{{ url_for('drivers.view_driver', driver_id=reservation.driver.id) }}">
+                                {{ reservation.driver.full_name }}
+                            </a>
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>Fecha/Hora Inicio:</strong><br>
+                        {{ reservation.start_date.strftime('%d/%m/%Y %H:%M') }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Fecha/Hora Fin:</strong><br>
+                        {{ reservation.end_date.strftime('%d/%m/%Y %H:%M') }}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>Propósito:</strong><br>
+                        {{ reservation.purpose }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Destino:</strong><br>
+                        {{ reservation.destination or 'N/A' }}
+                    </div>
+                </div>
+                
+                {% if reservation.actual_start_date %}
+                <hr>
+                <h6>Información Real</h6>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>Inicio Real:</strong><br>
+                        {{ reservation.actual_start_date.strftime('%d/%m/%Y %H:%M') }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Kilometraje Inicial:</strong><br>
+                        {{ "{:,}".format(reservation.actual_start_mileage) }} km
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if reservation.actual_end_date %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>Fin Real:</strong><br>
+                        {{ reservation.actual_end_date.strftime('%d/%m/%Y %H:%M') }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Kilometraje Final:</strong><br>
+                        {{ "{:,}".format(reservation.actual_end_mileage) }} km
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if reservation.notes %}
+                <div class="row">
+                    <div class="col-12">
+                        <strong>Notas:</strong><br>
+                        <p class="text-muted">{{ reservation.notes }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-flag"></i> Estado</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">
+                    {% if reservation.status.value == 'pending' %}
+                        <span class="badge bg-warning fs-6">Pendiente</span>
+                    {% elif reservation.status.value == 'confirmed' %}
+                        <span class="badge bg-info fs-6">Confirmada</span>
+                    {% elif reservation.status.value == 'in_progress' %}
+                        <span class="badge bg-primary fs-6">En Curso</span>
+                    {% elif reservation.status.value == 'completed' %}
+                        <span class="badge bg-success fs-6">Completada</span>
+                    {% else %}
+                        <span class="badge bg-danger fs-6">Cancelada</span>
+                    {% endif %}
+                </p>
+                
+                {% if reservation.status.value == 'confirmed' %}
+                <button type="button" class="btn btn-primary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#startModal">
+                    <i class="bi bi-play-circle"></i> Iniciar Reserva
+                </button>
+                {% endif %}
+                
+                {% if reservation.status.value == 'in_progress' %}
+                <button type="button" class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#completeModal">
+                    <i class="bi bi-check-circle"></i> Completar Reserva
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Iniciar -->
+<div class="modal fade" id="startModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('reservations.start_reservation', reservation_id=reservation.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="modal-header">
+                    <h5 class="modal-title">Iniciar Reserva</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="actual_start_mileage" class="form-label">Kilometraje Inicial *</label>
+                        <input type="number" class="form-control" id="actual_start_mileage" name="actual_start_mileage" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Iniciar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Completar -->
+<div class="modal fade" id="completeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('reservations.complete_reservation', reservation_id=reservation.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="modal-header">
+                    <h5 class="modal-title">Completar Reserva</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="actual_end_mileage" class="form-label">Kilometraje Final *</label>
+                        <input type="number" class="form-control" id="actual_end_mileage" name="actual_end_mileage" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="completion_notes" class="form-label">Notas de Finalización</label>
+                        <textarea class="form-control" id="completion_notes" name="completion_notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Completar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cancelar -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('reservations.cancel_reservation', reservation_id=reservation.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="modal-header">
+                    <h5 class="modal-title">Cancelar Reserva</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="cancellation_reason" class="form-label">Motivo de Cancelación *</label>
+                        <textarea class="form-control" id="cancellation_reason" name="cancellation_reason" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-danger">Cancelar Reserva</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-12">
+        <a href="{{ url_for('reservations.list_reservations') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a la Lista
+        </a>
+    </div>
+</div>
+{% endblock %}

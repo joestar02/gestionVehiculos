@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if vehicle else 'Nuevo' }} Vehículo - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1>
+            <i class="bi bi-car-front"></i> 
+            {{ 'Editar Vehículo' if vehicle else 'Nuevo Vehículo' }}
+        </h1>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="license_plate" class="form-label">Matrícula *</label>
+                    <input type="text" class="form-control" id="license_plate" name="license_plate" 
+                           value="{{ vehicle.license_plate if vehicle else '' }}" 
+                           {{ 'readonly' if vehicle else '' }} required>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="vin" class="form-label">VIN</label>
+                    <input type="text" class="form-control" id="vin" name="vin" 
+                           value="{{ vehicle.vin if vehicle else '' }}" maxlength="17">
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="make" class="form-label">Marca *</label>
+                    <input type="text" class="form-control" id="make" name="make" 
+                           value="{{ vehicle.make if vehicle else '' }}" required>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <label for="model" class="form-label">Modelo *</label>
+                    <input type="text" class="form-control" id="model" name="model" 
+                           value="{{ vehicle.model if vehicle else '' }}" required>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <label for="year" class="form-label">Año *</label>
+                    <input type="number" class="form-control" id="year" name="year" 
+                           value="{{ vehicle.year if vehicle else '' }}" 
+                           min="1900" max="2100" required>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="vehicle_type" class="form-label">Tipo de Vehículo *</label>
+                    <select class="form-select" id="vehicle_type" name="vehicle_type" required>
+                        <option value="">Seleccionar...</option>
+                        {% for vtype in vehicle_types %}
+                        <option value="{{ vtype.value }}" 
+                                {{ 'selected' if vehicle and vehicle.vehicle_type == vtype else '' }}>
+                            {{ vtype.value|t }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <label for="ownership_type" class="form-label">Tipo de Propiedad *</label>
+                    <select class="form-select" id="ownership_type" name="ownership_type" required>
+                        <option value="">Seleccionar...</option>
+                        {% for otype in ownership_types %}
+                        <option value="{{ otype.value }}" 
+                                {{ 'selected' if vehicle and vehicle.ownership_type == otype else '' }}>
+                            {{ otype.value|t }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <label for="color" class="form-label">Color</label>
+                    <input type="text" class="form-control" id="color" name="color" 
+                           value="{{ vehicle.color if vehicle else '' }}">
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="fuel_type" class="form-label">Tipo de Combustible</label>
+                    <select class="form-select" id="fuel_type" name="fuel_type">
+                        <option value="">Seleccionar...</option>
+                        <option value="gasoline" {{ 'selected' if vehicle and vehicle.fuel_type == 'gasoline' else '' }}>Gasolina</option>
+                        <option value="diesel" {{ 'selected' if vehicle and vehicle.fuel_type == 'diesel' else '' }}>Diésel</option>
+                        <option value="electric" {{ 'selected' if vehicle and vehicle.fuel_type == 'electric' else '' }}>Eléctrico</option>
+                        <option value="hybrid" {{ 'selected' if vehicle and vehicle.fuel_type == 'hybrid' else '' }}>Híbrido</option>
+                        <option value="lpg" {{ 'selected' if vehicle and vehicle.fuel_type == 'lpg' else '' }}>GLP</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="fuel_capacity" class="form-label">Capacidad de Combustible (L)</label>
+                    <input type="number" class="form-control" id="fuel_capacity" name="fuel_capacity" 
+                           value="{{ vehicle.fuel_capacity if vehicle else '' }}" min="0">
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="notes" class="form-label">Notas</label>
+                <textarea class="form-control" id="notes" name="notes" rows="3">{{ vehicle.notes if vehicle else '' }}</textarea>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('vehicles.list_vehicles') }}" class="btn btn-junta-secondary">
+                    <i class="bi bi-arrow-left"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-junta-primary">
+                    <i class="bi bi-save"></i> {{ 'Actualizar' if vehicle else 'Crear' }} Vehículo
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Autorizaciones - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1><i class="bi bi-shield-check"></i> Autorizaciones de Acceso Urbano</h1>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('compliance.create_authorization') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nueva Autorización
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if records %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Vehículo</th>
+                        <th>Tipo</th>
+                        <th>Nº Autorización</th>
+                        <th>Autoridad</th>
+                        <th>Zona</th>
+                        <th>Vigencia</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td>{{ record.vehicle.license_plate if record.vehicle else 'N/A' }}</td>
+                        <td><span class="badge bg-primary">{{ record.authorization_type }}</span></td>
+                        <td><strong>{{ record.authorization_number }}</strong></td>
+                        <td>{{ record.issuing_authority }}</td>
+                        <td>{{ record.zone_description or 'N/A' }}</td>
+                        <td>
+                            {{ record.start_date.strftime('%d/%m/%Y') }} - {{ record.end_date.strftime('%d/%m/%Y') }}
+                            {% if record.end_date < now %}
+                                <span class="badge bg-danger">Vencida</span>
+                            {% elif record.is_expiring_soon %}
+                                <span class="badge bg-warning">Por vencer</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if record.is_active and record.end_date >= now %}
+                                <span class="badge bg-success">Activa</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactiva</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('compliance.view_authorization', auth_id=record.id) }}" class="btn btn-sm btn-info" title="Ver detalles">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{{ url_for('compliance.edit_authorization', auth_id=record.id) }}" class="btn btn-sm btn-warning" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-shield-check display-1 text-muted"></i>
+            <p class="mt-3 text-muted">No hay autorizaciones registradas.</p>
+            <p class="small text-muted">Gestiona autorizaciones de acceso a zonas de bajas emisiones (ZBE), zonas de tráfico restringido, etc.</p>
+            <a href="{{ url_for('compliance.create_authorization') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Crear Primera Autorización
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<a href="{{ url_for('compliance.compliance_dashboard') }}" class="btn btn-secondary mt-3">
+    <i class="bi bi-arrow-left"></i> Volver al Dashboard
+</a>
+{% endblock %}

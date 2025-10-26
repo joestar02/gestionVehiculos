@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Organizaciones - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1><i class="bi bi-building"></i> Estructura Organizativa</h1>
+        <p class="text-muted">Gestión jerárquica de unidades organizativas</p>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('organizations.create_organization') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nueva Organización
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if org_tree %}
+        <div class="organization-tree">
+            {% for root_org in org_tree recursive %}
+            <div class="org-node" data-level="0">
+                <div class="org-item">
+                    <div class="org-header">
+                        <div class="org-info">
+                            <h5 class="org-name">{{ root_org.name }}</h5>
+                            <span class="org-code">{{ root_org.code }}</span>
+                        </div>
+                        <div class="org-actions">
+                            <a href="{{ url_for('organizations.view_organization', org_id=root_org.id) }}"
+                               class="btn btn-sm btn-info" title="Ver detalles">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{{ url_for('organizations.edit_organization', org_id=root_org.id) }}"
+                               class="btn btn-sm btn-warning" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% if root_org.description %}
+                    <p class="org-description">{{ root_org.description }}</p>
+                    {% endif %}
+                    {% if root_org.manager_name %}
+                    <div class="org-manager">
+                        <i class="bi bi-person"></i> {{ root_org.manager_name }}
+                    </div>
+                    {% endif %}
+                    {% if root_org.contact_email or root_org.contact_phone %}
+                    <div class="org-contact">
+                        {% if root_org.contact_email %}
+                        <span><i class="bi bi-envelope"></i> {{ root_org.contact_email }}</span>
+                        {% endif %}
+                        {% if root_org.contact_phone %}
+                        <span><i class="bi bi-telephone"></i> {{ root_org.contact_phone }}</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if root_org.children %}
+                <div class="org-children">
+                    {{ loop(root_org.children) }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-building display-1 text-muted"></i>
+            <p class="mt-3 text-muted">No hay organizaciones registradas.</p>
+            <a href="{{ url_for('organizations.create_organization') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Crear Primera Organización
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.organization-tree {
+    max-width: 100%;
+}
+
+.org-node {
+    margin-bottom: 1rem;
+}
+
+.org-item {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: box-shadow 0.2s ease;
+}
+
+.org-item:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.org-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.org-info h5 {
+    margin: 0;
+    color: #495057;
+    font-weight: 600;
+}
+
+.org-code {
+    background: #e9ecef;
+    color: #6c757d;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.org-description {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+    line-height: 1.4;
+}
+
+.org-manager, .org-contact {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+.org-contact span {
+    margin-right: 1rem;
+}
+
+.org-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.org-children {
+    margin-left: 2rem;
+    padding-left: 1rem;
+    border-left: 2px solid #e9ecef;
+    position: relative;
+}
+
+.org-children .org-node {
+    position: relative;
+}
+
+.org-children .org-node::before {
+    content: '';
+    position: absolute;
+    left: -1.5rem;
+    top: 1rem;
+    width: 1rem;
+    height: 2px;
+    background: #e9ecef;
+    border-radius: 1px;
+}
+
+.org-children .org-node:first-child::after {
+    content: '';
+    position: absolute;
+    left: -1.5rem;
+    top: 0;
+    bottom: 1rem;
+    width: 2px;
+    background: #e9ecef;
+    border-radius: 1px;
+}
+
+.org-children .org-node:last-child::after {
+    content: '';
+    position: absolute;
+    left: -1.5rem;
+    top: 1rem;
+    height: 1rem;
+    width: 2px;
+    background: #e9ecef;
+    border-radius: 1px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .org-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .org-actions {
+        margin-top: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    .org-children {
+        margin-left: 1rem;
+        padding-left: 0.5rem;
+    }
+}
+</style>
+{% endblock %}

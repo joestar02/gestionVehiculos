@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}{% if reservation %}Editar Reserva #{{ reservation.id }} - {{ app_name }}{% else %}Nueva Reserva - {{ app_name }}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1><i class="bi bi-calendar-check"></i>
+            {% if reservation %}Editar Reserva #{{ reservation.id }}{% else %}Nueva Reserva{% endif %}
+        </h1>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            {{ csrf_token() }}
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="vehicle_id" class="form-label">Vehículo *</label>
+                    <select class="form-select" id="vehicle_id" name="vehicle_id" required>
+                        <option value="">Seleccionar vehículo...</option>
+                        {% for vehicle in vehicles %}
+                        <option value="{{ vehicle.id }}" {% if reservation and reservation.vehicle_id == vehicle.id %}selected{% endif %}>
+                            {{ vehicle.license_plate }} - {{ vehicle.make }} {{ vehicle.model }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="driver_id" class="form-label">Conductor *</label>
+                    <select class="form-select" id="driver_id" name="driver_id" required>
+                        <option value="">Seleccionar conductor...</option>
+                        {% for driver in drivers %}
+                        <option value="{{ driver.id }}" {% if reservation and reservation.driver_id == driver.id %}selected{% endif %}>
+                            {{ driver.full_name }} ({{ driver.document_number }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="start_date" class="form-label">Fecha/Hora Inicio *</label>
+                    <input type="datetime-local" class="form-control" id="start_date" name="start_date" required value="{% if reservation %}{{ reservation.start_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="end_date" class="form-label">Fecha/Hora Fin *</label>
+                    <input type="datetime-local" class="form-control" id="end_date" name="end_date" required value="{% if reservation %}{{ reservation.end_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="purpose" class="form-label">Propósito *</label>
+              <input type="text" class="form-control" id="purpose" name="purpose" 
+                  placeholder="Ej: Visita a cliente, Transporte de mercancía..." required value="{% if reservation %}{{ reservation.purpose }}{% endif %}">
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="destination" class="form-label">Destino</label>
+              <input type="text" class="form-control" id="destination" name="destination" 
+                  placeholder="Ej: Madrid, Barcelona..." value="{% if reservation %}{{ reservation.destination }}{% endif %}">
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="notes" class="form-label">Notas</label>
+                <textarea class="form-control" id="notes" name="notes" rows="3">{% if reservation %}{{ reservation.notes }}{% endif %}</textarea>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('reservations.list_reservations') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> {% if reservation %}Guardar Cambios{% else %}Crear Reserva{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

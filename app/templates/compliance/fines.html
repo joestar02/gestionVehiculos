@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Multas - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1><i class="bi bi-exclamation-triangle"></i> Registros de Multas</h1>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('compliance.create_fine') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Registrar Multa
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if records %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Nº Multa</th>
+                        <th>Vehículo</th>
+                        <th>Tipo</th>
+                        <th>Fecha</th>
+                        <th>Importe</th>
+                        <th>Plazo Pago</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td><strong>{{ record.fine_number }}</strong></td>
+                        <td>{{ record.vehicle.license_plate if record.vehicle else 'N/A' }}</td>
+                        <td><span class="badge bg-secondary">{{ record.fine_type.value }}</span></td>
+                        <td>{{ record.fine_date.strftime('%d/%m/%Y') }}</td>
+                        <td><strong class="text-danger">€{{ "{:,.2f}".format(record.amount) }}</strong></td>
+                        <td>
+                            {% if record.payment_deadline %}
+                                {{ record.payment_deadline.strftime('%d/%m/%Y') }}
+                                {% if record.status.value == 'pending' and record.payment_deadline < now %}
+                                    <span class="badge bg-danger">Vencido</span>
+                                {% endif %}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if record.status.value == 'paid' %}
+                                <span class="badge bg-success">Pagada</span>
+                            {% elif record.status.value == 'pending' %}
+                                <span class="badge bg-warning">Pendiente</span>
+                            {% elif record.status.value == 'appealed' %}
+                                <span class="badge bg-info">Recurrida</span>
+                            {% elif record.status.value == 'dismissed' %}
+                                <span class="badge bg-secondary">Anulada</span>
+                            {% else %}
+                                <span class="badge bg-danger">{{ record.status.value }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('compliance.view_fine', fine_id=record.id) }}" class="btn btn-sm btn-info" title="Ver detalles">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{{ url_for('compliance.edit_fine', fine_id=record.id) }}" class="btn btn-sm btn-warning" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-exclamation-triangle display-1 text-muted"></i>
+            <p class="mt-3 text-muted">No hay registros de multas.</p>
+            <a href="{{ url_for('compliance.create_fine') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Registrar Primera Multa
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<a href="{{ url_for('compliance.compliance_dashboard') }}" class="btn btn-secondary mt-3">
+    <i class="bi bi-arrow-left"></i> Volver al Dashboard
+</a>
+{% endblock %}

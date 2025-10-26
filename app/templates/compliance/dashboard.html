@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}Cumplimiento - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1><i class="bi bi-clipboard-check"></i> Dashboard de Cumplimiento Normativo</h1>
+        <p class="text-muted">Control de ITV, impuestos, multas y autorizaciones</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="card text-white bg-primary">
+            <div class="card-body text-center">
+                <i class="bi bi-card-checklist display-3"></i>
+                <h5 class="mt-3">ITV</h5>
+                <p class="mb-0">Inspecciones Técnicas</p>
+                <a href="{{ url_for('compliance.itv_records') }}" class="btn btn-light btn-sm mt-3">
+                    Ver Registros <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-2">
+        <div class="card text-white bg-success">
+            <div class="card-body text-center">
+                <i class="bi bi-currency-euro display-3"></i>
+                <h5 class="mt-3">Impuestos</h5>
+                <p class="mb-0">IVTM y otros</p>
+                <a href="{{ url_for('compliance.tax_records') }}" class="btn btn-light btn-sm mt-3">
+                    Ver Registros <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-2">
+        <div class="card text-white bg-danger">
+            <div class="card-body text-center">
+                <i class="bi bi-exclamation-triangle display-3"></i>
+                <h5 class="mt-3">Multas</h5>
+                <p class="mb-0">Sanciones de tráfico</p>
+                <a href="{{ url_for('compliance.fine_records') }}" class="btn btn-light btn-sm mt-3">
+                    Ver Registros <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-2">
+        <div class="card text-white bg-warning">
+            <div class="card-body text-center">
+                <i class="bi bi-shield display-3"></i>
+                <h5 class="mt-3">Seguros</h5>
+                <p class="mb-0">Pólizas de vehículos</p>
+                <a href="{{ url_for('compliance.insurance_list') }}" class="btn btn-light btn-sm mt-3">
+                    Ver Registros <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card text-white bg-secondary">
+            <div class="card-body text-center">
+                <i class="bi bi-clipboard-check display-3"></i>
+                <h5 class="mt-3">Autorizaciones</h5>
+                <p class="mb-0">Autorizaciones acceso</p>
+                <a href="{{ url_for('compliance.authorization_records') }}" class="btn btn-light btn-sm mt-3">
+                    Ver Registros <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>    
+
+    <div class="col-md-2">
+        <div class="card text-white  bg-info">
+            <div class="card-body text-center">
+                <i class="bi bi-tools display-3"></i>
+                <h5 class="mt-3">Mantenimiento</h5>
+                <p class="mb-0">Mantenimientos</p>
+                <a href="{{ url_for('maintenance.list_maintenance') }}" class="btn btn-light btn-sm mt-3">
+                    Ver Registros <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>   
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-warning text-white">
+                <h5 class="mb-0"><i class="bi bi-exclamation-circle"></i> Alertas Próximas</h5>
+            </div>
+            <div class="card-body">
+                {% if stats.expired_itvs_count == 0 and stats.expiring_itvs_count == 0 and stats.overdue_fines_count == 0 and stats.overdue_taxes_count == 0 and stats.expired_insurances_count == 0 and stats.expiring_insurances_count == 0 and stats.pending_insurance_payments_count == 0 %}
+                <div class="alert alert-success">
+                    <strong><i class="bi bi-check-circle"></i> Todo al Día</strong>
+                    <p class="mb-0 small">No hay alertas pendientes.</p>
+                </div>
+                {% else %}
+                {% if stats.expired_itvs_count > 0 %}
+                <div class="alert alert-danger">
+                    <strong><i class="bi bi-calendar-x"></i> ITV Vencidas</strong>
+                    <p class="mb-0 small">{{ stats.expired_itvs_count }} vehículo(s) con ITV vencida.</p>
+                </div>
+                {% endif %}
+                
+                {% if stats.expiring_itvs_count > 0 %}
+                <div class="alert alert-warning">
+                    <strong><i class="bi bi-calendar-x"></i> ITV Próximas a Vencer</strong>
+                    <p class="mb-0 small">{{ stats.expiring_itvs_count }} vehículo(s) con ITV próxima a vencer en 30 días.</p>
+                </div>
+                {% endif %}
+                
+                {% if stats.overdue_fines_count > 0 %}
+                <div class="alert alert-danger">
+                    <strong><i class="bi bi-exclamation-triangle"></i> Multas Vencidas</strong>
+                    <p class="mb-0 small">{{ stats.overdue_fines_count }} multa(s) con plazo de pago vencido.</p>
+                </div>
+                {% endif %}
+                
+                {% if stats.overdue_taxes_count > 0 %}
+                <div class="alert alert-danger">
+                    <strong><i class="bi bi-currency-euro"></i> Impuestos Vencidos</strong>
+                    <p class="mb-0 small">{{ stats.overdue_taxes_count }} impuesto(s) con plazo vencido.</p>
+                </div>
+                {% endif %}
+                
+                {% if stats.expired_insurances_count > 0 %}
+                <div class="alert alert-danger">
+                    <strong><i class="bi bi-shield-x"></i> Seguros Vencidos</strong>
+                    <p class="mb-0 small">{{ stats.expired_insurances_count }} vehículo(s) con seguro vencido.</p>
+                </div>
+                {% endif %}
+                
+                {% if stats.expiring_insurances_count > 0 %}
+                <div class="alert alert-warning">
+                    <strong><i class="bi bi-shield-exclamation"></i> Seguros Próximos a Vencer</strong>
+                    <p class="mb-0 small">{{ stats.expiring_insurances_count }} vehículo(s) con seguro próximo a vencer en 30 días.</p>
+                </div>
+                {% endif %}
+                
+                {% if stats.pending_insurance_payments_count > 0 %}
+                <div class="alert alert-info">
+                    <strong><i class="bi bi-credit-card"></i> Pagos de Seguros Pendientes</strong>
+                    <p class="mb-0 small">{{ stats.pending_insurance_payments_count }} pago(s) de seguro pendiente(s).</p>
+                </div>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-graph-up"></i> Resumen</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4 mb-3">
+                        <h3 class="text-primary">{{ stats.expiring_itvs_count }}</h3>
+                        <small class="text-muted">ITV por Vencer</small>
+                    </div>
+                    <div class="col-4 mb-3">
+                        <h3 class="text-danger">{{ stats.pending_fines_count }}</h3>
+                        <small class="text-muted">Multas Pendientes</small>
+                    </div>
+                    <div class="col-4 mb-3">
+                        <h3 class="text-success">{{ stats.pending_taxes_count }}</h3>
+                        <small class="text-muted">Impuestos Pendientes</small>
+                    </div>
+                    <div class="col-4 mb-3">
+                        <h3 class="text-warning">{{ stats.expiring_insurances_count }}</h3>
+                        <small class="text-muted">Seguros por Vencer</small>
+                    </div>
+                    <div class="col-4 mb-3">
+                        <h3 class="text-info">{{ stats.pending_insurance_payments_count }}</h3>
+                        <small class="text-muted">Pagos Seguros</small>
+                    </div>
+                    <div class="col-4 mb-3">
+                        <h3 class="text-secondary">{{ stats.expired_insurances_count }}</h3>
+                        <small class="text-muted">Seguros Vencidos</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

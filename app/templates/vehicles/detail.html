@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+
+{% block title %}{{ vehicle.license_plate }} - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1><i class="bi bi-car-front"></i> {{ vehicle.license_plate }}</h1>
+        <p class="text-muted">{{ vehicle.make }} {{ vehicle.model }} ({{ vehicle.year }})</p>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('vehicles.edit_vehicle', vehicle_id=vehicle.id) }}" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Editar
+        </a>
+                <form method="POST" action="{{ url_for('vehicles.delete_vehicle', vehicle_id=vehicle.id) }}" 
+                            style="display: inline;" onsubmit="return confirm('¿Estás seguro de eliminar este vehículo?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Eliminar
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Información General</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>Matrícula:</strong><br>
+                        <span class="badge bg-primary fs-6">{{ vehicle.license_plate }}</span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>VIN:</strong><br>
+                        {{ vehicle.vin or 'N/A' }}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <strong>Marca:</strong><br>
+                        {{ vehicle.make }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <strong>Modelo:</strong><br>
+                        {{ vehicle.model }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <strong>Año:</strong><br>
+                        {{ vehicle.year }}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <strong>Color:</strong><br>
+                        {{ vehicle.color or 'N/A' }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <strong>Tipo:</strong><br>
+                        <span class="badge bg-secondary">{{ vehicle.vehicle_type.value|t }}</span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <strong>Propiedad:</strong><br>
+                        <span class="badge bg-info">{{ vehicle.ownership_type.value|t }}</span>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>Combustible:</strong><br>
+                        {{ (vehicle.fuel_type|t) if vehicle.fuel_type else 'N/A' }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Capacidad:</strong><br>
+                        {{ vehicle.fuel_capacity or 'N/A' }} L
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <strong>Kilometraje Actual:</strong><br>
+                        {{ "{:,}".format(vehicle.current_mileage) }} km
+                    </div>
+                </div>
+                
+                {% if vehicle.notes %}
+                <div class="row">
+                    <div class="col-12">
+                        <strong>Notas:</strong><br>
+                        <p class="text-muted">{{ vehicle.notes }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Historial del Vehículo</h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#historyFilters">
+                        <i class="bi bi-funnel"></i> Filtros
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs mb-3" id="historyTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">
+                            <i class="bi bi-list-ul"></i> Todo
+                            <span class="badge bg-secondary ms-1">{{ history_by_type.all|length }}</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="assignments-tab" data-bs-toggle="tab" data-bs-target="#assignments" type="button" role="tab">
+                            <i class="bi bi-person-badge"></i> Asignaciones
+                            <span class="badge bg-primary ms-1">{{ history_by_type.assignments|length }}</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="maintenance-tab" data-bs-toggle="tab" data-bs-target="#maintenance" type="button" role="tab">
+                            <i class="bi bi-tools"></i> Mantenimientos
+                            <span class="badge bg-warning ms-1">{{ history_by_type.maintenance|length }}</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="insurance-tab" data-bs-toggle="tab" data-bs-target="#insurance" type="button" role="tab">
+                            <i class="bi bi-shield-check"></i> Seguros
+                            <span class="badge bg-success ms-1">{{ history_by_type.insurance|length }}</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="inspection-tab" data-bs-toggle="tab" data-bs-target="#inspection" type="button" role="tab">
+                            <i class="bi bi-clipboard-check"></i> ITV
+                            <span class="badge bg-info ms-1">{{ history_by_type.inspection|length }}</span>
+                        </button>
+                    </li>
+                </ul>
+                
+                <!-- Tab panes -->
+                <div class="tab-content">
+                    <!-- All History -->
+                    <div class="tab-pane fade show active" id="all" role="tabpanel">
+                        {% if history_by_type.all %}
+                            <div class="list-group list-group-flush">
+                                {% for item in history_by_type.all %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1"><i class="bi {{ item.icon }} {{ item.class }}"></i> {{ item.title }}</h6>
+                                            <small class="text-muted">{{ item.date.strftime('%d/%m/%Y') }}</small>
+                                        </div>
+                                        <p class="mb-1">{{ item.details }}</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info mb-0">No hay historial disponible para este vehículo.</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Assignments -->
+                    <div class="tab-pane fade" id="assignments" role="tabpanel">
+                        {% if history_by_type.assignments %}
+                            <div class="list-group list-group-flush">
+                                {% for item in history_by_type.assignments %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1"><i class="bi {{ item.icon }} {{ item.class }}"></i> {{ item.title }}</h6>
+                                            <small class="text-muted">{{ item.date.strftime('%d/%m/%Y') }}</small>
+                                        </div>
+                                        <p class="mb-1">{{ item.details }}</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info mb-0">No hay asignaciones registradas.</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Maintenance -->
+                    <div class="tab-pane fade" id="maintenance" role="tabpanel">
+                        {% if history_by_type.maintenance %}
+                            <div class="list-group list-group-flush">
+                                {% for item in history_by_type.maintenance %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1"><i class="bi {{ item.icon }} {{ item.class }}"></i> {{ item.title }}</h6>
+                                            <small class="text-muted">{{ item.date.strftime('%d/%m/%Y') }}</small>
+                                        </div>
+                                        <p class="mb-1">{{ item.details }}</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info mb-0">No hay registros de mantenimiento.</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Insurance -->
+                    <div class="tab-pane fade" id="insurance" role="tabpanel">
+                        {% if history_by_type.insurance %}
+                            <div class="list-group list-group-flush">
+                                {% for item in history_by_type.insurance %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1"><i class="bi {{ item.icon }} {{ item.class }}"></i> {{ item.title }}</h6>
+                                            <small class="text-muted">{{ item.date.strftime('%d/%m/%Y') }}</small>
+                                        </div>
+                                        <p class="mb-1">{{ item.details }}</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info mb-0">No hay registros de seguros.</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Inspection (ITV) -->
+                    <div class="tab-pane fade" id="inspection" role="tabpanel">
+                        {% if history_by_type.inspection %}
+                            <div class="list-group list-group-flush">
+                                {% for item in history_by_type.inspection %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1"><i class="bi {{ item.icon }} {{ item.class }}"></i> {{ item.title }}</h6>
+                                            <small class="text-muted">{{ item.date.strftime('%d/%m/%Y') }}</small>
+                                        </div>
+                                        <p class="mb-1">{{ item.details }}</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info mb-0">No hay registros de inspecciones técnicas (ITV).</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filters Modal -->
+        <div class="modal fade" id="historyFilters" tabindex="-1" aria-labelledby="historyFiltersLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="historyFiltersLabel">Filtrar Historial</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="historyFiltersForm">
+                            <div class="mb-3">
+                                <label class="form-label">Tipo de Evento</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="filterAll" checked>
+                                    <label class="form-check-label" for="filterAll">
+                                        Todos los eventos
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input event-filter" type="checkbox" value="assignment" id="filterAssignments" checked>
+                                    <label class="form-check-label" for="filterAssignments">
+                                        <i class="bi bi-person-badge text-primary"></i> Asignaciones
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input event-filter" type="checkbox" value="maintenance" id="filterMaintenance" checked>
+                                    <label class="form-check-label" for="filterMaintenance">
+                                        <i class="bi bi-tools text-warning"></i> Mantenimientos
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input event-filter" type="checkbox" value="insurance" id="filterInsurance" checked>
+                                    <label class="form-check-label" for="filterInsurance">
+                                        <i class="bi bi-shield-check text-success"></i> Seguros
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input event-filter" type="checkbox" value="inspection" id="filterInspection" checked>
+                                    <label class="form-check-label" for="filterInspection">
+                                        <i class="bi bi-clipboard-check text-info"></i> ITV
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="dateFrom" class="form-label">Desde</label>
+                                <input type="date" class="form-control" id="dateFrom">
+                            </div>
+                            <div class="mb-3">
+                                <label for="dateTo" class="form-label">Hasta</label>
+                                <input type="date" class="form-control" id="dateTo">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-primary" id="applyFilters">Aplicar Filtros</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-flag"></i> Estado</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('vehicles.update_status', vehicle_id=vehicle.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Estado Actual:</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="available" {{ 'selected' if vehicle.status.value == 'available' else '' }}>
+                                Disponible
+                            </option>
+                            <option value="in_use" {{ 'selected' if vehicle.status.value == 'in_use' else '' }}>
+                                En Uso
+                            </option>
+                            <option value="maintenance" {{ 'selected' if vehicle.status.value == 'maintenance' else '' }}>
+                                Mantenimiento
+                            </option>
+                            <option value="out_of_service" {{ 'selected' if vehicle.status.value == 'out_of_service' else '' }}>
+                                Fuera de Servicio
+                            </option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-arrow-repeat"></i> Actualizar Estado
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-calendar-event"></i> Fechas</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Creado:</strong><br>
+                {{ vehicle.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                <p class="mb-0"><strong>Actualizado:</strong><br>
+                {{ vehicle.updated_at.strftime('%d/%m/%Y %H:%M') }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-12">
+        <a href="{{ url_for('vehicles.list_vehicles') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a la Lista
+        </a>
+    </div>
+</div>
+{% endblock %}

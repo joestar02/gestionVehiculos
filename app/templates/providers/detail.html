@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Proveedor - {{ provider.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1>{{ provider.name }}</h1>
+  <p class="text-muted">Tipo: {{ provider.provider_type_display }}</p>
+
+  <div class="row">
+    <div class="col-md-6">
+      <dl class="row">
+        <dt class="col-sm-4">Contacto</dt>
+        <dd class="col-sm-8">{{ provider.contact_person or '-' }}</dd>
+
+        <dt class="col-sm-4">Teléfono</dt>
+        <dd class="col-sm-8">{{ provider.phone or '-' }}</dd>
+
+        <dt class="col-sm-4">Email</dt>
+        <dd class="col-sm-8">{{ provider.email or '-' }}</dd>
+
+        <dt class="col-sm-4">Sitio web</dt>
+        <dd class="col-sm-8">{% if provider.website %}<a href="{{ provider.website }}" target="_blank">{{ provider.website }}</a>{% else %}-{% endif %}</dd>
+
+        <dt class="col-sm-4">Activo</dt>
+        <dd class="col-sm-8">{{ 'Sí' if provider.is_active else 'No' }}</dd>
+      </dl>
+    </div>
+
+    <div class="col-md-6">
+      <h5>Dirección</h5>
+      <p>{{ provider.address or '-' }}</p>
+
+      <h5>Notas</h5>
+      <p>{{ provider.notes or '-' }}</p>
+    </div>
+  </div>
+
+  <hr />
+  <div class="d-flex justify-content-between">
+    <div>
+      <small class="text-muted">Creado: {{ provider.created_at }} | Actualizado: {{ provider.updated_at }}</small>
+    </div>
+
+    <div>
+      <a class="btn btn-primary" href="{{ url_for('providers.edit_provider', provider_id=provider.id) }}">Editar</a>
+      <form method="post" action="{{ url_for('providers.delete_provider', provider_id=provider.id) }}" style="display:inline-block;" onsubmit="return confirm('¿Eliminar proveedor?');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button class="btn btn-danger">Eliminar</button>
+      </form>
+      <a class="btn btn-secondary" href="{{ url_for('providers.list_providers') }}">Volver</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

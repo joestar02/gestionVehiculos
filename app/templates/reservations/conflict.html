@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Conflicto de Reserva - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1><i class="bi bi-exclamation-triangle-fill text-warning"></i> Conflicto de Reserva</h1>
+        <p class="text-muted">Se ha detectado una reserva que solapa con el periodo seleccionado.</p>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5>Reserva conflictiva (id={{ conflict.id }})</h5>
+        <p><strong>Vehículo:</strong> {% if conflict.vehicle %}{{ conflict.vehicle.license_plate }}{% else %}N/D{% endif %}</p>
+        <p><strong>Conductor:</strong> {% if conflict.driver %}{{ conflict.driver.full_name }}{% else %}N/D{% endif %}</p>
+        <p><strong>Inicio:</strong> {{ conflict.start_date.strftime('%d/%m/%Y %H:%M') }}</p>
+        <p><strong>Fin:</strong> {{ conflict.end_date.strftime('%d/%m/%Y %H:%M') }}</p>
+        <p><strong>Propósito:</strong> {{ conflict.purpose }}</p>
+
+        <div class="mt-3">
+            <a href="{{ url_for('reservations.view_reservation', reservation_id=conflict.id) }}" class="btn btn-info me-2">
+                Ver reserva conflictiva
+            </a>
+
+            <form method="post" action="{{ url_for('reservations.request_change', reservation_id=conflict.id) }}" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button class="btn btn-secondary me-2">Solicitar cambio</button>
+            </form>
+
+            {% if current_user.role.value in ['admin', 'fleet_manager'] %}
+            <form method="post" action="{{ url_for('reservations.force_reservation') }}" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="original_action" value="{{ action }}"/>
+                <input type="hidden" name="vehicle_id" value="{{ data.vehicle_id }}"/>
+                <input type="hidden" name="driver_id" value="{{ data.driver_id }}"/>
+                <input type="hidden" name="start_date" value="{{ data.start_date }}"/>
+                <input type="hidden" name="end_date" value="{{ data.end_date }}"/>
+                <input type="hidden" name="purpose" value="{{ data.purpose }}"/>
+                <input type="hidden" name="destination" value="{{ data.destination }}"/>
+                <input type="hidden" name="notes" value="{{ data.notes }}"/>
+                <button class="btn btn-danger">Forzar reserva (confirmar)</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

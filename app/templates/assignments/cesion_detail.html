@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block title %}Detalles de Cesión - {{ record.vehicle.license_plate }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('assignments.cesion_records') }}">
+                        <i class="bi bi-clipboard-check"></i> Cesión de Vehículos
+                    </a>
+                </li>
+                <li class="breadcrumb-item active">Detalles</li>
+            </ol>
+        </nav>
+
+        <h1 class="mb-4">
+            <i class="bi bi-clipboard-check"></i> Detalles de Cesión
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Información de la Cesión</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card border-secondary">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Información General</h6>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>ID:</strong></td>
+                                        <td>{{ record.id }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Tipo:</strong></td>
+                                        <td>{{ record.assignment_type.value.replace('_', ' ').title() }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Estado:</strong></td>
+                                        <td>
+                                            {% if record.is_active %}
+                                            <span class="badge bg-success">Activa</span>
+                                            {% else %}
+                                            <span class="badge bg-danger">Inactiva</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Fecha de Creación:</strong></td>
+                                        <td>{{ record.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card border-info">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Información Financiera</h6>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>Costo de Cesión:</strong></td>
+                                        <td><span class="text-primary font-weight-bold">{{ "%.2f"|format(record.assignment_fee) }} €</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Estado de Pago:</strong></td>
+                                        <td>
+                                            {% if record.payment_status.value == 'paid' %}
+                                            <span class="badge bg-success">Pagada</span>
+                                            {% elif record.payment_status.value == 'pending' %}
+                                            <span class="badge bg-warning">Pendiente</span>
+                                            {% else %}
+                                            <span class="badge bg-danger">Cancelada</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% if record.payment_date %}
+                                    <tr>
+                                        <td><strong>Fecha de Pago:</strong></td>
+                                        <td>{{ record.payment_date.strftime('%d/%m/%Y') }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if record.payment_method %}
+                                    <tr>
+                                        <td><strong>Método de Pago:</strong></td>
+                                        <td>{{ record.payment_method }}</td>
+                                    </tr>
+                                    {% endif %}
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card border-primary">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Vehículo Asignado</h6>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>Matrícula:</strong></td>
+                                        <td>{{ record.vehicle.license_plate }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Marca/Modelo:</strong></td>
+                                        <td>{{ record.vehicle.make }} {{ record.vehicle.model }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Año:</strong></td>
+                                        <td>{{ record.vehicle.year }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Tipo:</strong></td>
+                                        <td>{{ record.vehicle.vehicle_type.value|t }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card border-success">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Conductor Asignado</h6>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>Nombre:</strong></td>
+                                        <td>{{ record.driver.full_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Documento:</strong></td>
+                                        <td>{{ record.driver.document_number }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Licencia:</strong></td>
+                                        <td>{{ record.driver.driver_license_number }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Tipo:</strong></td>
+                                        <td>{{ record.driver.driver_type.value|t }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card border-warning">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Fechas</h6>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>Fecha de Inicio:</strong></td>
+                                        <td>{{ record.start_date.strftime('%d/%m/%Y') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Fecha de Fin:</strong></td>
+                                        <td>{{ record.end_date.strftime('%d/%m/%Y') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Duración:</strong></td>
+                                        <td>{{ ((record.end_date - record.start_date).days + 1) }} días</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card border-info">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Detalles Adicionales</h6>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>Propósito:</strong></td>
+                                        <td>{{ record.purpose }}</td>
+                                    </tr>
+                                    {% if record.destination %}
+                                    <tr>
+                                        <td><strong>Destino:</strong></td>
+                                        <td>{{ record.destination }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    <tr>
+                                        <td><strong>Unidad Organizacional:</strong></td>
+                                        <td>{{ record.organization_unit.code }} - {{ record.organization_unit.name }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if record.notes %}
+                <div class="card border-secondary mb-4">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">Notas</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">{{ record.notes }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="d-flex justify-content-between">
+                    <div>
+                        {% if record.is_active %}
+                        <form method="POST" action="{{ url_for('assignments.pay_cesion', assignment_id=record.id) }}" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-success"
+                                    onclick="return confirm('¿Marcar como pagada?')">
+                                <i class="bi bi-check-circle"></i> Marcar como Pagada
+                            </button>
+                        </form>
+                        <a href="{{ url_for('assignments.edit_cesion', assignment_id=record.id) }}" class="btn btn-primary">
+                            <i class="bi bi-pencil"></i> Editar Cesión
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    {% if record.is_active %}
+                    <form method="POST" action="{{ url_for('assignments.delete_cesion', assignment_id=record.id) }}" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn btn-danger"
+                                onclick="return confirm('¿Está seguro de que desea eliminar esta cesión?')">
+                            <i class="bi bi-trash"></i> Eliminar Cesión
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
