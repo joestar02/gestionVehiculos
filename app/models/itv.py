@@ -6,12 +6,6 @@ import enum
 
 from app.extensions import db
 
-class ITVStatus(str, enum.Enum):
-    PENDING = "pendiente"
-    PASSED = "pasado"
-    FAILED = "rechazado"
-    EXPIRED = "fin_plazo"
-
 class ITVResult(str, enum.Enum):
     FAVORABLE = "favorable"
     DESFAVORABLE = "desfavorable"
@@ -30,7 +24,6 @@ class ITVRecord(db.Model):
     
     # Resultado
     result = Column(Enum(ITVResult), nullable=False)
-    status = Column(Enum(ITVStatus), default=ITVStatus.PENDING)
     
     # Detalles
     inspection_center = Column(String(200))

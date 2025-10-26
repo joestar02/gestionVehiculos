@@ -2,7 +2,7 @@
 from typing import List, Optional
 from datetime import datetime, timedelta
 from app.extensions import db
-from app.models.itv import ITVRecord, ITVStatus, ITVResult
+from app.models.itv import ITVRecord, ITVResult
 
 class ITVService:
     @staticmethod
@@ -53,7 +53,6 @@ class ITVService:
             inspection_date=inspection_date,
             expiry_date=expiry_date,
             result=result,
-            status=ITVStatus.PASSED if result == ITVResult.FAVORABLE else ITVStatus.FAILED,
             **kwargs
         )
         db.session.add(itv)

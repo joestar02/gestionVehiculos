@@ -11,7 +11,7 @@
 
 <div class="card">
     <div class="card-body">
-        <form method="POST" action="{{ url_for('compliance.create_itv') if not record else url_for('compliance.update_itv', record_id=record.id) }}">
+        <form method="POST" action="{{ url_for('compliance.create_itv') if not record else url_for('compliance.edit_itv', record_id=record.id) }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="row">
                 <div class="col-md-6">

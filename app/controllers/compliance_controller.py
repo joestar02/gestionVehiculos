@@ -12,7 +12,7 @@ from app.services.vehicle_service import VehicleService
 from app.services.insurance_service import InsuranceService
 from app.utils.helpers import save_uploaded_file, parse_money
 from app.utils.error_helpers import log_exception
-from app.models.itv import ITVResult, ITVStatus
+from app.models.itv import ITVResult
 from app.models.tax import TaxType, PaymentStatus
 from app.models.insurance import InsuranceType
 from app.models.fine import FineType, FineStatus
@@ -96,17 +96,23 @@ def create_itv():
             except ValueError:
                 raise ValueError('Formato de fecha inválido, use YYYY-MM-DD')
             
+            next_inspection_date_str = request.form.get('next_inspection_date')
+            next_inspection_date = datetime.strptime(next_inspection_date_str, '%Y-%m-%d') if next_inspection_date_str else None
+            
             record = ITVService.create_itv(
                 vehicle_id=int(request.form.get('vehicle_id')),
                 inspection_date=inspection_date,
                 expiry_date=expiry_date,
+                next_inspection_date=next_inspection_date,
                 result=ITVResult(request.form.get('result')),
                 inspection_center=request.form.get('inspection_center'),
+                inspector_name=request.form.get('inspector_name'),
                 certificate_number=request.form.get('certificate_number'),
                 cost=parse_money(request.form.get('cost')) if request.form.get('cost') else None,
                 mileage_at_inspection=int(request.form.get('mileage_at_inspection')) if request.form.get('mileage_at_inspection') else None,
-                defects_found=request.form.get('defects_found'),
-                notes=request.form.get('notes')
+                defects_severity=request.form.get('defects_severity') or None,
+                defects_found=request.form.get('defects_found') or None,
+                notes=request.form.get('notes') or None
             )
             flash('Registro de ITV creado exitosamente', 'success')
             return redirect(url_for('compliance.view_itv', record_id=record.id))
@@ -495,17 +501,23 @@ def edit_itv(record_id):
             inspection_date = datetime.strptime(request.form.get('inspection_date'), '%Y-%m-%d')
             expiry_date = datetime.strptime(request.form.get('expiry_date'), '%Y-%m-%d')
             
+            next_inspection_date_str = request.form.get('next_inspection_date')
+            next_inspection_date = datetime.strptime(next_inspection_date_str, '%Y-%m-%d') if next_inspection_date_str else None
+            
             ITVService.update_itv(
                 record_id,
                 inspection_date=inspection_date,
                 expiry_date=expiry_date,
+                next_inspection_date=next_inspection_date,
                 result=ITVResult(request.form.get('result')),
                 inspection_center=request.form.get('inspection_center'),
+                inspector_name=request.form.get('inspector_name'),
                 certificate_number=request.form.get('certificate_number'),
                 cost=parse_money(request.form.get('cost')) if request.form.get('cost') else None,
                 mileage_at_inspection=int(request.form.get('mileage_at_inspection')) if request.form.get('mileage_at_inspection') else None,
-                defects_found=request.form.get('defects_found'),
-                notes=request.form.get('notes')
+                defects_severity=request.form.get('defects_severity') or None,
+                defects_found=request.form.get('defects_found') or None,
+                notes=request.form.get('notes') or None
             )
             flash('Registro de ITV actualizado exitosamente', 'success')
             return redirect(url_for('compliance.view_itv', record_id=record_id))

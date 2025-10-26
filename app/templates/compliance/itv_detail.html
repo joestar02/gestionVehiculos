@@ -144,7 +144,7 @@ function confirmDelete(recordId) {
         // Crear formulario para POST
         var form = document.createElement('form');
         form.method = 'POST';
-        form.action = '{{ url_for("compliance.delete_itv", record_id="") }}' + recordId;
+        form.action = '{{ url_for("compliance.delete_itv", record_id=0) }}'.replace('/0/delete', '/' + recordId + '/delete');
         
         // Agregar CSRF token si es necesario
         var csrfInput = document.createElement('input');

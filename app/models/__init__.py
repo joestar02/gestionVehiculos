@@ -8,7 +8,7 @@ from .reservation import Reservation, ReservationStatus
 from .vehicle_pickup import VehiclePickup, PickupStatus
 from .renting_contract import RentingContract
 from .maintenance import MaintenanceRecord, MaintenanceType, MaintenanceStatus
-from .itv import ITVRecord, ITVStatus, ITVResult
+from .itv import ITVRecord, ITVResult
 from .accident import Accident, AccidentSeverity, AccidentStatus
 from .tax import VehicleTax, TaxType, PaymentStatus
 from .fine import Fine, FineStatus, FineType
@@ -35,7 +35,6 @@ __all__ = [
     "MaintenanceType",
     "MaintenanceStatus",
     "ITVRecord",
-    "ITVStatus",
     "ITVResult",
     "Accident",
     "AccidentSeverity",
