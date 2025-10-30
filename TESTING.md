@@ -47,11 +47,8 @@ pip install -r requirements.txt
 ### Run All Tests
 
 ```bash
-# Using the test runner script
-python run_tests.py
-
-# Or directly with pytest
-python -m pytest tests/ -v --color=yes
+# Directly with pytest (recommended)
+pytest tests/ -v --color=yes
 ```
 
 ### Run Specific Test Categories
@@ -70,11 +67,7 @@ python -m pytest tests/test_models.py -v
 ### Run with Coverage Report
 
 ```bash
-# Generate coverage report
-python run_tests.py coverage
-
-# Or directly
-python -m pytest tests/ --cov=app --cov-report=html --cov-report=term-missing
+pytest --cov=app tests/ --cov-report=html --cov-report=term-missing
 ```
 
 ### Run Tests with Verbose Output
@@ -247,13 +240,13 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: '3.9'
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install -r requirements-dev.txt
-    - name: Run tests
-      run: python run_tests.py
+        - name: Install dependencies
+            run: |
+                python -m pip install --upgrade pip
+                pip install -r requirements.txt
+                pip install -r requirements-dev.txt
+        - name: Run tests
+            run: pytest tests/ -v --color=yes
 ```
 
 ## Debugging Tests

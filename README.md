@@ -85,6 +85,10 @@ source venv/bin/activate
 ```bash
 pip install -r requirements.txt
 ```
+Para desarrollo y pruebas (formatters, linters, pytest, Sphinx) instala también:
+```bash
+pip install -r requirements-dev.txt
+```
 
 ### 4. Configurar variables de entorno
 ```bash
@@ -99,9 +103,13 @@ python run.py
 *(La aplicación se iniciará y creará automáticamente las tablas)*
 
 ### 6. Crear usuario administrador
-La aplicación creará automáticamente un usuario administrador:
-- **Usuario**: `admin`
-- **Contraseña**: `admin123`
+No se recomienda usar credenciales por defecto. Para crear un usuario administrador usa el script de administración incluido (si existe) o crea la cuenta desde la interfaz web con un usuario de privilegios.
+
+Si necesitases crear un administrador desde consola y el script `create_admin_user.py` está disponible en `archive_root_files/`, ejecútalo así:
+```powershell
+python archive_root_files\create_admin_user.py --username admin --email admin@example.com
+```
+O crea el usuario desde la interfaz una vez arrancada la aplicación.
 
 ## 🚀 Inicio Rápido
 
@@ -196,16 +204,19 @@ FIRST_SUPERUSER_PASSWORD=<contraseña-segura>
 ## 🧪 Testing
 
 ### Ejecutar tests
+Se recomienda usar `pytest` directamente. Ejemplos:
 ```bash
-# Todos los tests
-python run_tests.py
+# Ejecutar todos los tests
+pytest tests/ -v
 
-# Tests específicos
-python -m pytest tests/ -v
+# Ejecutar un test concreto
+pytest tests/test_example.py -q
 
-# Tests con cobertura
-python -m pytest --cov=app tests/
+# Ejecutar con cobertura
+pytest --cov=app tests/
 ```
+
+Nota: el antiguo script `run_tests.py` fue movido a `archive_root_files/` para limpieza del repositorio raíz.
 
 ### Página de Test Bootstrap
 Para verificar que Bootstrap funciona correctamente:
@@ -295,5 +306,22 @@ Este proyecto es propiedad de la **Junta de Andalucía** y está desarrollado pa
 ---
 
 **Versión**: 1.0.0
-**Última actualización**: Octubre 2025
+**Última actualización**: 30 de octubre de 2025
 **Estado**: ✅ Producción
+
+## Notas sobre archivos en el root y archivado
+
+- Para mantener el repositorio raíz limpio, muchos scripts de setup y utilidades fueron movidos a `archive_root_files/` en vez de eliminarse. Revisa ese directorio antes de ejecutar scripts antiguos.
+- No incluyas en el control de versiones archivos sensibles como `gestion_vehiculos.db` o `security.log`.
+- Si al intentar mover o eliminar archivos observas que están "en uso" en Windows, cierra editores/servicios que los puedan tener abiertos (por ejemplo servidores de desarrollo o extensiones LSP). En PowerShell puedes listar procesos que referencian la ruta del repo:
+
+```powershell
+$repo = 'C:\Users\ramon\OneDrive\Documentos\windsurf\gestionVehiculos'
+Get-WmiObject Win32_Process | Where-Object { $_.CommandLine -and ($_.CommandLine -match [regex]::Escape($repo)) } | Select-Object ProcessId,Name,CommandLine
+```
+
+Detén procesos por PID únicamente si estás seguro de su origen:
+
+```powershell
+Stop-Process -Id <PID> -Force
+```

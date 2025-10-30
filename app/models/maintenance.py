@@ -7,18 +7,19 @@ from app.extensions import db
 
 class MaintenanceType(str, enum.Enum):
     ITV = "itv"
-    OIL_CHANGE = "oil_change"
-    TIRE_CHANGE = "tire_change"
-    BRAKE_SERVICE = "brake_service"
-    GENERAL_INSPECTION = "general_inspection"
-    REPAIR = "repair"
-    OTHER = "other"
+    OIL_CHANGE = "cambio_aceite"
+    TIRE_CHANGE = "cambio_neumaticos"
+    BRAKE_SERVICE = "revision_frenos"
+    GENERAL_INSPECTION = "inspeccion_general"
+    REPAIR = "reparacion"
+    Maintenance = "revision_mantenimiento"
+    OTHER = "otro"
 
 class MaintenanceStatus(str, enum.Enum):
-    SCHEDULED = "scheduled"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
+    SCHEDULED = "programado"
+    IN_PROGRESS = "en_proceso"
+    COMPLETED = "completado"
+    CANCELLED = "cancelado"
 
 class MaintenanceRecord(db.Model):
     __tablename__ = "maintenance_records"

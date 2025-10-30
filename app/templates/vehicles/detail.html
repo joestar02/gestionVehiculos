@@ -141,6 +141,24 @@
                             <span class="badge bg-info ms-1">{{ history_by_type.inspection|length }}</span>
                         </button>
                     </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tax-tab" data-bs-toggle="tab" data-bs-target="#tax" type="button" role="tab">
+                            <i class="bi bi-cash-stack"></i> Impuestos
+                            <span class="badge bg-danger ms-1">{{ history_by_type.tax|length }}</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="fine-tab" data-bs-toggle="tab" data-bs-target="#fine" type="button" role="tab">
+                            <i class="bi bi-exclamation-triangle"></i> Multas
+                            <span class="badge bg-danger ms-1">{{ history_by_type.fine|length }}</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="authorization-tab" data-bs-toggle="tab" data-bs-target="#authorization" type="button" role="tab">
+                            <i class="bi bi-file-earmark-check"></i> Autorizaciones
+                            <span class="badge bg-success ms-1">{{ history_by_type.authorization|length }}</span>
+                        </button>
+                    </li>
                 </ul>
                 
                 <!-- Tab panes -->
@@ -239,6 +257,62 @@
                             <div class="alert alert-info mb-0">No hay registros de inspecciones técnicas (ITV).</div>
                         {% endif %}
                     </div>
+                    <!-- Taxes -->
+                    <div class="tab-pane fade" id="tax" role="tabpanel">
+                        {% if history_by_type.tax %}
+                            <div class="list-group list-group-flush">
+                                {% for item in history_by_type.tax %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1"><i class="bi {{ item.icon }} {{ item.class }}"></i> {{ item.title }}</h6>
+                                            <small class="text-muted">{{ item.date.strftime('%d/%m/%Y') }}</small>
+                                        </div>
+                                        <p class="mb-1">{{ item.details }}</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info mb-0">No hay registros de impuestos.</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Fines -->
+                    <div class="tab-pane fade" id="fine" role="tabpanel">
+                        {% if history_by_type.fine %}
+                            <div class="list-group list-group-flush">
+                                {% for item in history_by_type.fine %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1"><i class="bi {{ item.icon }} {{ item.class }}"></i> {{ item.title }}</h6>
+                                            <small class="text-muted">{{ item.date.strftime('%d/%m/%Y') }}</small>
+                                        </div>
+                                        <p class="mb-1">{{ item.details }}</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info mb-0">No hay registros de multas.</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Authorizations -->
+                    <div class="tab-pane fade" id="authorization" role="tabpanel">
+                        {% if history_by_type.authorization %}
+                            <div class="list-group list-group-flush">
+                                {% for item in history_by_type.authorization %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1"><i class="bi {{ item.icon }} {{ item.class }}"></i> {{ item.title }}</h6>
+                                            <small class="text-muted">{{ item.date.strftime('%d/%m/%Y') }}</small>
+                                        </div>
+                                        <p class="mb-1">{{ item.details }}</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info mb-0">No hay registros de autorizaciones.</div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -283,6 +357,24 @@
                                     <input class="form-check-input event-filter" type="checkbox" value="inspection" id="filterInspection" checked>
                                     <label class="form-check-label" for="filterInspection">
                                         <i class="bi bi-clipboard-check text-info"></i> ITV
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input event-filter" type="checkbox" value="tax" id="filterTax" checked>
+                                    <label class="form-check-label" for="filterTax">
+                                        <i class="bi bi-cash-stack text-danger"></i> Impuestos
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input event-filter" type="checkbox" value="fine" id="filterFine" checked>
+                                    <label class="form-check-label" for="filterFine">
+                                        <i class="bi bi-exclamation-triangle text-danger"></i> Multas
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input event-filter" type="checkbox" value="authorization" id="filterAuthorization" checked>
+                                    <label class="form-check-label" for="filterAuthorization">
+                                        <i class="bi bi-file-earmark-check text-success"></i> Autorizaciones
                                     </label>
                                 </div>
                             </div>

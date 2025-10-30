@@ -130,4 +130,17 @@ Para reportar vulnerabilidades de seguridad, por favor contactar al equipo de de
 
 ---
 
+### Notas operativas y de desarrollo
+
+- Evita incluir en commits archivos sensibles como la base de datos de desarrollo (`gestion_vehiculos.db`) o `security.log`.
+- Muchos scripts y utilidades han sido archivados en `archive_root_files/`; antes de ejecutar scripts antiguos, revísalos y actualiza según tu entorno.
+- Si necesitas mover o eliminar archivos que aparecen como "en uso" en Windows, identifica procesos que usan la ruta del repo y ciérralos (editores, servidores, LSP). Por ejemplo, en PowerShell:
+
+```powershell
+$repo = 'C:\Users\ramon\OneDrive\Documentos\windsurf\gestionVehiculos'
+Get-WmiObject Win32_Process | Where-Object { $_.CommandLine -and ($_.CommandLine -match [regex]::Escape($repo)) } | Select-Object ProcessId,Name,CommandLine
+```
+
+Usa `Stop-Process -Id <PID> -Force` con precaución para detener procesos que bloqueen archivos.
+
 **Nota**: Esta guía debe actualizarse regularmente conforme se implementen nuevas medidas de seguridad.
