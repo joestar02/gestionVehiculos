@@ -66,38 +66,18 @@
                             <option value="negativa" {% if record and record.result.value == 'negativa' %}selected{% endif %}>Negativa</option>
                         </select>
                     </div>
+                    
                 </div>
-                
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="status" class="form-label">Estado</label>
-                        <select class="form-select" id="status" name="status">
-                            <option value="pending" {% if record and record.status.value == 'pending' %}selected{% endif %}>Pendiente</option>
-                            <option value="passed" {% if record and record.status.value == 'passed' %}selected{% endif %}>Aprobada</option>
-                            <option value="failed" {% if record and record.status.value == 'failed' %}selected{% endif %}>No Aprobada</option>
-                            <option value="expired" {% if record and record.status.value == 'expired' %}selected{% endif %}>Vencida</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label for="inspection_center" class="form-label">Centro de Inspección</label>
                         <input type="text" class="form-control" id="inspection_center" name="inspection_center" 
                                value="{{ record.inspection_center if record else '' }}" placeholder="Nombre del centro ITV">
                     </div>
-                </div>
-                
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="inspector_name" class="form-label">Inspector</label>
-                        <input type="text" class="form-control" id="inspector_name" name="inspector_name" 
-                               value="{{ record.inspector_name if record else '' }}" placeholder="Nombre del inspector">
-                    </div>
-                </div>
+                </div>                              
             </div>
+
+
 
             <div class="row">
                 <div class="col-md-6">

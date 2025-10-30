@@ -146,17 +146,34 @@ def create_cesion():
             start_date = datetime.strptime(request.form.get('start_date'), '%Y-%m-%d')
             end_date = datetime.strptime(request.form.get('end_date'), '%Y-%m-%d')
 
+            # Get the vehicle to get its organization unit
+            vehicle = VehicleService.get_vehicle_by_id(int(request.form.get('vehicle_id')))
+            if not vehicle:
+                flash('Vehículo no encontrado', 'error')
+                return redirect(url_for('assignments.create_cesion'))
+                
+            # Get organization_unit_id from the vehicle, or use a default value if None
+            organization_unit_id = vehicle.organization_unit_id
+            if organization_unit_id is None:
+                # Try to get the user's organization unit as fallback
+                if hasattr(current_user, 'organization_unit_id'):
+                    organization_unit_id = current_user.organization_unit_id
+                else:
+                    # If still None, use a default value (you might want to handle this differently)
+                    organization_unit_id = 1  # Default organization unit ID
+            
             record = VehicleAssignmentService.create_assignment(
-                vehicle_id=int(request.form.get('vehicle_id')),
+                vehicle_id=vehicle.id,
                 driver_id=int(request.form.get('driver_id')),
-                organization_unit_id=int(request.form.get('organization_unit_id')),
+                organization_unit_id=organization_unit_id,
                 assignment_type=AssignmentType(request.form.get('assignment_type')),
                 start_date=start_date,
                 end_date=end_date,
-                assignment_fee=parse_money(request.form.get('assignment_fee')),
+                assignment_fee=parse_money(request.form.get('assignment_fee') or 0),
                 purpose=request.form.get('purpose'),
                 destination=request.form.get('destination'),
-                notes=request.form.get('notes')
+                notes=request.form.get('notes'),
+                created_by=current_user.id
             )
             flash('Cesión de vehículo creada exitosamente', 'success')
             return redirect(url_for('assignments.view_cesion', assignment_id=record.id))
@@ -164,30 +181,13 @@ def create_cesion():
             err_id = log_exception(e, __name__)
             flash(f'Error al crear cesión (id={err_id})', 'error')
 
-    # Filter vehicles and drivers by organization unit for non-admin users
-    if current_user.role in [UserRole.ADMIN, UserRole.FLEET_MANAGER]:
-        vehicles = VehicleService.get_all_vehicles()
-        drivers = DriverService.get_active_drivers()
-        organization_units = OrganizationService.get_all_organization_units()
-    else:
-        # Get organization unit from current user's driver profile
-        user_driver = current_user.driver
-        if user_driver:
-            organization_unit_id = user_driver.organization_unit_id
-            vehicles = VehicleService.get_all_vehicles(organization_unit_id=organization_unit_id)
-            drivers = DriverService.get_all_drivers(organization_unit_id=organization_unit_id)
-            # For non-admin users, only show their organization unit
-            organization_units = [user_driver.organization_unit]
-        else:
-            vehicles = []
-            drivers = []
-            organization_units = []
-            flash('Usuario no asociado a ninguna unidad organizacional', 'warning')
+    # Get all vehicles and drivers
+    vehicles = VehicleService.get_all_vehicles()
+    drivers = DriverService.get_active_drivers()
 
     return render_template('assignments/cesion_form.html',
                          vehicles=vehicles,
                          drivers=drivers,
-                         organization_units=organization_units,
                          assignment_types=AssignmentType)
 
 @assignment_bp.route('/cesiones/<int:assignment_id>/pay', methods=['POST'])
@@ -246,31 +246,14 @@ def edit_cesion(assignment_id):
             err_id = log_exception(e, __name__)
             flash(f'Error al actualizar cesión (id={err_id})', 'error')
 
-    # Filter vehicles and drivers by organization unit for non-admin users
-    if current_user.role in [UserRole.ADMIN, UserRole.FLEET_MANAGER]:
-        vehicles = VehicleService.get_all_vehicles()
-        drivers = DriverService.get_active_drivers()
-        organization_units = OrganizationService.get_all_organization_units()
-    else:
-        # Get organization unit from current user's driver profile
-        user_driver = current_user.driver
-        if user_driver:
-            organization_unit_id = user_driver.organization_unit_id
-            vehicles = VehicleService.get_all_vehicles(organization_unit_id=organization_unit_id)
-            drivers = DriverService.get_all_drivers(organization_unit_id=organization_unit_id)
-            # For non-admin users, only show their organization unit
-            organization_units = [user_driver.organization_unit]
-        else:
-            vehicles = []
-            drivers = []
-            organization_units = []
-            flash('Usuario no asociado a ninguna unidad organizacional', 'warning')
+    # Get all vehicles and drivers
+    vehicles = VehicleService.get_all_vehicles()
+    drivers = DriverService.get_active_drivers()
 
     return render_template('assignments/cesion_form.html',
                          record=record,
                          vehicles=vehicles,
                          drivers=drivers,
-                         organization_units=organization_units,
                          assignment_types=AssignmentType)
 
 @assignment_bp.route('/cesiones/<int:assignment_id>/delete', methods=['POST'])

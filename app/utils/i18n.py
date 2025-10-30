@@ -44,10 +44,22 @@ TRANSLATIONS = {
     'traffic_light': 'Semáforo',
     'documentation': 'Documentación',
     'other': 'Otra',
+    # fine types (enum values)
+    'exceso_velocidad': 'Exceso de Velocidad',
+    'aparcamiento': 'Estacionamiento',
+    'carril_no_permitido': 'Semáforo',
+    'documentación': 'Documentación',
+    'otro': 'Otra',
 
     # other
     'appealed': 'Recurrida',
     'dismissed': 'Anulada',
+    # fine statuses (enum values)
+    'pendiente': 'Pendiente',
+    'pagado': 'Pagado',
+    'reclamado': 'Recurrida',
+    'rechazado': 'Anulada',
+    'con_retraso': 'Vencido',
 }
 
 

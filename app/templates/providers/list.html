@@ -28,9 +28,6 @@
                             <tr>
                                 <th>Nombre</th>
                                 <th>Tipo</th>
-                                <th>Contacto</th>
-                                <th>Teléfono</th>
-                                <th>Email</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -45,10 +42,7 @@
                                 </td>
                                 <td>
                                     <span class="badge bg-info">{{ provider.provider_type_display }}</span>
-                                </td>
-                                <td>{{ provider.contact_person or '-' }}</td>
-                                <td>{{ provider.phone or '-' }}</td>
-                                <td>{{ provider.email or '-' }}</td>
+                                </td>                                
                                 <td>
                                     <div class="btn-group" role="group">
                                         <a href="{{ url_for('providers.view_provider', provider_id=provider.id) }}" class="btn btn-sm btn-info" title="Ver detalles">

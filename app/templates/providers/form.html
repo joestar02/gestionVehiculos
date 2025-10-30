@@ -5,17 +5,6 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item">
-                    <a href="{{ url_for('providers.list_providers') }}">
-                        <i class="bi bi-building"></i> Proveedores
-                    </a>
-                </li>
-                <li class="breadcrumb-item active">{{ 'Editar' if provider else 'Nuevo' }} Proveedor</li>
-            </ol>
-        </nav>
-
         <h1 class="mb-4">
             <i class="bi bi-building"></i> {{ 'Editar Proveedor' if provider else 'Nuevo Proveedor' }}
         </h1>

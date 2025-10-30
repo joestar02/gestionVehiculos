@@ -11,7 +11,7 @@
 
 <div class="card">
     <div class="card-body">
-        <form method="POST" action="{{ url_for('compliance.create_tax') if not record else url_for('compliance.update_tax', tax_id=record.id) }}">
+    <form method="POST" action="{{ url_for('compliance.create_tax') if not record else url_for('compliance.edit_tax', tax_id=record.id) }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="row">
                 <div class="col-md-6">
@@ -34,7 +34,7 @@
                         <select class="form-select" id="tax_type" name="tax_type" required>
                             <option value="">Seleccionar tipo...</option>
                             <option value="ivtm" {% if record and record.tax_type.value == 'ivtm' %}selected{% endif %}>IVTM (Impuesto de Vehículos)</option>
-                            <option value="other" {% if record and record.tax_type.value == 'other' %}selected{% endif %}>Otro</option>
+                            <option value="otro" {% if record and record.tax_type.value == 'otro' %}selected{% endif %}>Otro</option>
                         </select>
                     </div>
                 </div>
@@ -72,10 +72,10 @@
                     <div class="mb-3">
                         <label for="payment_status" class="form-label">Estado de Pago *</label>
                         <select class="form-select" id="payment_status" name="payment_status" required>
-                            <option value="pending" {% if record and record.payment_status.value == 'pending' %}selected{% endif %}>Pendiente</option>
-                            <option value="paid" {% if record and record.payment_status.value == 'paid' %}selected{% endif %}>Pagado</option>
-                            <option value="overdue" {% if record and record.payment_status.value == 'overdue' %}selected{% endif %}>Vencido</option>
-                            <option value="exempt" {% if record and record.payment_status.value == 'exempt' %}selected{% endif %}>Exento</option>
+                            <option value="pendiente" {% if record and record.payment_status.value == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                            <option value="pagado" {% if record and record.payment_status.value == 'pagado' %}selected{% endif %}>Pagado</option>
+                            <option value="con_retraso" {% if record and record.payment_status.value == 'con_retraso' %}selected{% endif %}>Vencido</option>
+                            <option value="exento" {% if record and record.payment_status.value == 'exento' %}selected{% endif %}>Exento</option>
                         </select>
                     </div>
                 </div>

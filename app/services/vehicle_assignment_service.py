@@ -52,7 +52,6 @@ class VehicleAssignmentService:
     def create_assignment(
         vehicle_id: int,
         driver_id: int,
-        organization_unit_id: int,
         assignment_type: AssignmentType,
         start_date: datetime,
         end_date: datetime,
@@ -64,7 +63,6 @@ class VehicleAssignmentService:
         assignment = VehicleAssignment(
             vehicle_id=vehicle_id,
             driver_id=driver_id,
-            organization_unit_id=organization_unit_id,
             assignment_type=assignment_type,
             start_date=start_date,
             end_date=end_date,

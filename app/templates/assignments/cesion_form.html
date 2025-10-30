@@ -49,19 +49,7 @@
                             </select>
                         </div>
 
-                        <div class="col-md-6 mb-3">
-                            <label for="organization_unit_id" class="form-label">Unidad Organizacional</label>
-                            <select name="organization_unit_id" id="organization_unit_id" class="form-select" required>
-                                <option value="">Seleccionar unidad...</option>
-                                {% for org in organization_units %}
-                                <option value="{{ org.id }}" {% if record and record.organization_unit_id == org.id %}selected{% endif %}>
-                                    {{ org.code }} - {{ org.name }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
+<div class="col-md-6 mb-3">
                             <label for="assignment_type" class="form-label">Tipo de Asignación</label>
                             <select name="assignment_type" id="assignment_type" class="form-select" required>
                                 <option value="">Seleccionar tipo...</option>

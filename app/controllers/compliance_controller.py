@@ -10,6 +10,7 @@ from app.services.fine_service import FineService
 from app.services.authorization_service import AuthorizationService
 from app.services.vehicle_service import VehicleService
 from app.services.insurance_service import InsuranceService
+from app.services.driver_service import DriverService
 from app.utils.helpers import save_uploaded_file, parse_money
 from app.utils.error_helpers import log_exception
 from app.models.itv import ITVResult
@@ -155,9 +156,16 @@ def create_tax():
             except ValueError:
                 raise ValueError('Formato de fecha inválido, use YYYY-MM-DD')
             
+            # Validate enum inputs defensively to give user-friendly errors
+            try:
+                tax_type_value = request.form.get('tax_type')
+                tax_type = TaxType(tax_type_value)
+            except Exception:
+                raise ValueError('Tipo de impuesto inválido')
+
             record = TaxService.create_tax(
                 vehicle_id=int(request.form.get('vehicle_id')),
-                tax_type=TaxType(request.form.get('tax_type')),
+                tax_type=tax_type,
                 tax_year=int(request.form.get('tax_year')),
                 amount=parse_money(request.form.get('amount')),
                 due_date=due_date,
@@ -394,10 +402,25 @@ def create_fine():
                 raise ValueError('Formato de fecha inválido, use YYYY-MM-DD')
             payment_deadline = datetime.strptime(request.form.get('payment_deadline'), '%Y-%m-%d') if request.form.get('payment_deadline') else None
             
+            # Validate vehicle selection and fine_type before converting to avoid ValueError
+            vehicle_id_str = request.form.get('vehicle_id')
+            if not vehicle_id_str:
+                raise ValueError('Seleccione un vehículo')
+            try:
+                vehicle_id = int(vehicle_id_str)
+            except Exception:
+                raise ValueError('ID de vehículo inválido')
+
+            try:
+                fine_type_value = request.form.get('fine_type')
+                fine_type = FineType(fine_type_value)
+            except Exception:
+                raise ValueError('Tipo de multa inválido')
+
             record = FineService.create_fine(
-                vehicle_id=int(request.form.get('vehicle_id')),
+                vehicle_id=vehicle_id,
                 fine_number=request.form.get('fine_number'),
-                fine_type=FineType(request.form.get('fine_type')),
+                fine_type=fine_type,
                 fine_date=fine_date,
                 description=request.form.get('description'),
                 amount=parse_money(request.form.get('amount')),
@@ -413,7 +436,8 @@ def create_fine():
             flash(f'Error al registrar multa (id={err_id})', 'error')
     
     vehicles = VehicleService.get_all_vehicles()
-    return render_template('compliance/fine_form.html', vehicles=vehicles, fine_types=FineType)
+    drivers = DriverService.get_active_drivers()
+    return render_template('compliance/fine_form.html', vehicles=vehicles, drivers=drivers, fine_types=FineType)
 
 @compliance_bp.route('/fines/<int:fine_id>/pay', methods=['POST'])
 @login_required
@@ -466,8 +490,17 @@ def create_authorization():
             except ValueError:
                 raise ValueError('Formato de fecha inválido, use YYYY-MM-DD')
             
+            # Validate vehicle selection before converting to int to avoid ValueError on empty string
+            vehicle_id_str = request.form.get('vehicle_id')
+            if not vehicle_id_str:
+                raise ValueError('Seleccione un vehículo')
+            try:
+                vehicle_id = int(vehicle_id_str)
+            except Exception:
+                raise ValueError('ID de vehículo inválido')
+
             record = AuthorizationService.create_authorization(
-                vehicle_id=int(request.form.get('vehicle_id')),
+                vehicle_id=vehicle_id,
                 authorization_type=request.form.get('authorization_type'),
                 issuing_authority=request.form.get('issuing_authority'),
                 authorization_number=request.form.get('authorization_number'),
@@ -553,9 +586,15 @@ def edit_tax(tax_id):
         try:
             due_date = datetime.strptime(request.form.get('due_date'), '%Y-%m-%d')
             
+            try:
+                tax_type_value = request.form.get('tax_type')
+                tax_type = TaxType(tax_type_value)
+            except Exception:
+                raise ValueError('Tipo de impuesto inválido')
+
             TaxService.update_tax(
                 tax_id,
-                tax_type=TaxType(request.form.get('tax_type')),
+                tax_type=tax_type,
                 tax_year=int(request.form.get('tax_year')),
                 amount=parse_money(request.form.get('amount')),
                 due_date=due_date,
@@ -596,9 +635,15 @@ def edit_fine(fine_id):
             fine_date = datetime.strptime(request.form.get('fine_date'), '%Y-%m-%d')
             payment_deadline = datetime.strptime(request.form.get('payment_deadline'), '%Y-%m-%d') if request.form.get('payment_deadline') else None
 
+            try:
+                fine_type_value = request.form.get('fine_type')
+                fine_type = FineType(fine_type_value)
+            except Exception:
+                raise ValueError('Tipo de multa inválido')
+
             FineService.update_fine(
                 fine_id,
-                fine_type=FineType(request.form.get('fine_type')),
+                fine_type=fine_type,
                 fine_date=fine_date,
                 description=request.form.get('description'),
                 amount=parse_money(request.form.get('amount')),
@@ -613,7 +658,8 @@ def edit_fine(fine_id):
             flash(f'Error al actualizar multa: (id={err_id})', 'error')
     
     vehicles = VehicleService.get_all_vehicles()
-    return render_template('compliance/fine_form.html', record=record, vehicles=vehicles, fine_types=FineType)
+    drivers = DriverService.get_active_drivers()
+    return render_template('compliance/fine_form.html', record=record, vehicles=vehicles, drivers=drivers, fine_types=FineType)
 
 @compliance_bp.route('/fines/<int:fine_id>/delete', methods=['POST'])
 @login_required

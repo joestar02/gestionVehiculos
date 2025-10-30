@@ -23,12 +23,15 @@ class VehicleHistoryService:
         # Get assignments
         assignments = Assignment.query.filter_by(vehicle_id=vehicle_id).order_by(Assignment.start_date.desc()).all()
         for assignment in assignments:
+            # ensure a valid date for sorting/display
+            assign_date = assignment.start_date or getattr(assignment, 'created_at', datetime.utcnow())
+            end_str = assignment.end_date.strftime('%d/%m/%Y') if getattr(assignment, 'end_date', None) else 'Actualidad'
             history.append({
                 'type': 'assignment',
-                'date': assignment.start_date,
+                'date': assign_date,
                 'title': f'Asignación a {assignment.driver.full_name if assignment.driver else "conductor desconocido"}',
-                'details': f"Desde: {assignment.start_date.strftime('%d/%m/%Y')} - "
-                         f"Hasta: {assignment.end_date.strftime('%d/%m/%Y') if assignment.end_date else 'Actualidad'}",
+                'details': f"Desde: {assign_date.strftime('%d/%m/%Y')} - "
+                         f"Hasta: {end_str}",
                 'icon': 'bi-person-badge',
                 'class': 'text-primary'
             })
@@ -36,12 +39,14 @@ class VehicleHistoryService:
         # Get maintenance records
         maintenances = Maintenance.query.filter_by(vehicle_id=vehicle_id).order_by(Maintenance.scheduled_date.desc()).all()
         for maintenance in maintenances:
+            maint_date = maintenance.scheduled_date or getattr(maintenance, 'created_at', datetime.utcnow())
+            cost_str = maintenance.cost or 'N/A'
             history.append({
                 'type': 'maintenance',
-                'date': maintenance.scheduled_date,
+                'date': maint_date,
                 'title': f'Mantenimiento: {maintenance.maintenance_type}',
                 'details': f"{maintenance.description if maintenance.description else 'Sin descripción'}. "
-                         f"Costo: {maintenance.cost or 'N/A'}",
+                         f"Costo: {cost_str}",
                 'icon': 'bi-tools',
                 'class': 'text-warning'
             })
@@ -49,12 +54,14 @@ class VehicleHistoryService:
         # Get insurance records
         insurances = Insurance.query.filter_by(vehicle_id=vehicle_id).order_by(Insurance.start_date.desc()).all()
         for insurance in insurances:
+            ins_date = insurance.start_date or getattr(insurance, 'created_at', datetime.utcnow())
+            end_str = insurance.end_date.strftime('%d/%m/%Y') if getattr(insurance, 'end_date', None) else 'No especificado'
             history.append({
                 'type': 'insurance',
-                'date': insurance.start_date,
+                'date': ins_date,
                 'title': 'Seguro',
                 'details': f"Compañía: {insurance.insurance_company}. "
-                         f"Válido hasta: {insurance.end_date.strftime('%d/%m/%Y') if insurance.end_date else 'No especificado'}",
+                         f"Válido hasta: {end_str}",
                 'icon': 'bi-shield-check',
                 'class': 'text-success'
             })
@@ -62,12 +69,14 @@ class VehicleHistoryService:
         # Get inspections (ITV)
         inspections = Inspection.query.filter_by(vehicle_id=vehicle_id).order_by(Inspection.inspection_date.desc()).all()
         for inspection in inspections:
+            insp_date = inspection.inspection_date or getattr(inspection, 'created_at', datetime.utcnow())
+            next_str = inspection.next_inspection_date.strftime('%d/%m/%Y') if getattr(inspection, 'next_inspection_date', None) else 'No especificada'
             history.append({
                 'type': 'inspection',
-                'date': inspection.inspection_date,
+                'date': insp_date,
                 'title': 'Inspección Técnica (ITV)',
                 'details': f"Resultado: {inspection.result}. "
-                         f"Próxima: {inspection.next_inspection_date.strftime('%d/%m/%Y') if inspection.next_inspection_date else 'No especificada'}",
+                         f"Próxima: {next_str}",
                 'icon': 'bi-clipboard-check',
                 'class': 'text-info'
             })
@@ -75,12 +84,16 @@ class VehicleHistoryService:
         # Get tax records
         taxes = Tax.query.filter_by(vehicle_id=vehicle_id).order_by(Tax.due_date.desc()).all()
         for tax in taxes:
+            tax_date = tax.due_date or getattr(tax, 'created_at', datetime.utcnow())
+            # VehicleTax model stores amount (Numeric) and payment_status (Enum). There is no currency field.
+            amount_str = f"€{float(tax.amount):.2f}" if tax.amount is not None else 'N/A'
+            status_str = tax.payment_status.value if getattr(tax, 'payment_status', None) is not None else 'N/A'
             history.append({
                 'type': 'tax',
-                'date': tax.due_date,
+                'date': tax_date,
                 'title': 'Impuesto de Vehículo',
-                'details': f"Importe: {tax.amount} {tax.currency}. "
-                         f"Estado: {tax.status}",
+                'details': f"Importe: {amount_str}. "
+                         f"Estado: {status_str}",
                 'icon': 'bi-cash-stack',
                 'class': 'text-danger'
             })
@@ -88,12 +101,15 @@ class VehicleHistoryService:
         # Get fines
         fines = Fine.query.filter_by(vehicle_id=vehicle_id).order_by(Fine.fine_date.desc()).all()
         for fine in fines:
+            fine_date = fine.fine_date or getattr(fine, 'created_at', datetime.utcnow())
+            amount_str = f"€{float(fine.amount):.2f}" if fine.amount is not None else 'N/A'
+            status_str = fine.status.value if getattr(fine, 'status', None) is not None else 'N/A'
             history.append({
                 'type': 'fine',
-                'date': fine.fine_date,
+                'date': fine_date,
                 'title': 'Multa de Tráfico',
-                'details': f"Importe: {fine.amount} {fine.currency}. "
-                         f"Estado: {fine.status}",
+                'details': f"Importe: {amount_str}. "
+                         f"Estado: {status_str}",
                 'icon': 'bi-exclamation-triangle',
                 'class': 'text-danger'
             })
@@ -101,12 +117,21 @@ class VehicleHistoryService:
         # Get authorizations
         authorizations = Authorization.query.filter_by(vehicle_id=vehicle_id).order_by(Authorization.start_date.desc()).all()
         for auth in authorizations:
+            # The model does not store an "authorized_person" field. Use available fields instead.
+            auth_type = auth.authorization_type or 'N/D'
+            auth_number = auth.authorization_number or 'N/D'
+            issuing = auth.issuing_authority or 'N/D'
+            zone = auth.zone_description or ''
+            end_date_str = auth.end_date.strftime('%d/%m/%Y') if auth.end_date else 'Sin fecha de fin'
+            details_parts = [f"Tipo: {auth_type}", f"Nº: {auth_number}", f"Emitido por: {issuing}"]
+            if zone:
+                details_parts.append(f"Zona: {zone}")
+            details_parts.append(f"Hasta: {end_date_str}")
             history.append({
                 'type': 'authorization',
                 'date': auth.start_date,
                 'title': 'Autorización de Uso',
-                'details': f"Autorizado para: {auth.authorized_person}. "
-                         f"Hasta: {auth.end_date.strftime('%d/%m/%Y') if auth.end_date else 'Sin fecha de fin'}",
+                'details': ' / '.join(details_parts),
                 'icon': 'bi-file-earmark-check',
                 'class': 'text-success'
             })

@@ -23,7 +23,7 @@ class VehicleAssignment(db.Model):
     id = Column(Integer, primary_key=True, index=True)
     vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=False)
     driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=False)
-    organization_unit_id = Column(Integer, ForeignKey("organization_units.id"), nullable=False)
+    organization_unit_id = Column(Integer, ForeignKey("organization_units.id"), nullable=True)  # Made nullable
 
     # Assignment details
     assignment_type = Column(Enum(AssignmentType), nullable=False)
@@ -52,7 +52,7 @@ class VehicleAssignment(db.Model):
     # Relationships
     vehicle = relationship("Vehicle", back_populates="assignments")
     driver = relationship("Driver", back_populates="assignments")
-    organization_unit = relationship("OrganizationUnit", back_populates="assignments")
+    organization_unit = relationship("OrganizationUnit", back_populates="assignments", foreign_keys=[organization_unit_id])
     creator = relationship("User", back_populates="created_assignments")
 
     def __repr__(self):

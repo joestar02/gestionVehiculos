@@ -11,7 +11,7 @@
 
 <div class="card">
     <div class="card-body">
-        <form method="POST" action="{{ url_for('compliance.create_fine') if not record else url_for('compliance.update_fine', fine_id=record.id) }}">
+    <form method="POST" action="{{ url_for('compliance.create_fine') if not record else url_for('compliance.edit_fine', fine_id=record.id) }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="row">
                 <div class="col-md-6">
@@ -57,11 +57,11 @@
                         <label for="fine_type" class="form-label">Tipo de Multa *</label>
                         <select class="form-select" id="fine_type" name="fine_type" required>
                             <option value="">Seleccionar tipo...</option>
-                            <option value="speeding" {% if record and record.fine_type.value == 'speeding' %}selected{% endif %}>Exceso de Velocidad</option>
-                            <option value="parking" {% if record and record.fine_type.value == 'parking' %}selected{% endif %}>Estacionamiento</option>
-                            <option value="traffic_light" {% if record and record.fine_type.value == 'traffic_light' %}selected{% endif %}>Semáforo</option>
-                            <option value="documentation" {% if record and record.fine_type.value == 'documentation' %}selected{% endif %}>Documentación</option>
-                            <option value="other" {% if record and record.fine_type.value == 'other' %}selected{% endif %}>Otra</option>
+                            <option value="exceso_velocidad" {% if record and record.fine_type.value == 'exceso_velocidad' %}selected{% endif %}>Exceso de Velocidad</option>
+                            <option value="aparcamiento" {% if record and record.fine_type.value == 'aparcamiento' %}selected{% endif %}>Estacionamiento</option>
+                            <option value="carril_no_permitido" {% if record and record.fine_type.value == 'carril_no_permitido' %}selected{% endif %}>Semáforo / Paso prohibido</option>
+                            <option value="documentación" {% if record and record.fine_type.value == 'documentación' %}selected{% endif %}>Documentación</option>
+                            <option value="otro" {% if record and record.fine_type.value == 'otro' %}selected{% endif %}>Otra</option>
                         </select>
                     </div>
                 </div>
@@ -117,10 +117,10 @@
                     <div class="mb-3">
                         <label for="status" class="form-label">Estado *</label>
                         <select class="form-select" id="status" name="status" required>
-                            <option value="pending" {% if record and record.status.value == 'pending' %}selected{% endif %}>Pendiente</option>
-                            <option value="paid" {% if record and record.status.value == 'paid' %}selected{% endif %}>Pagada</option>
-                            <option value="appealed" {% if record and record.status.value == 'appealed' %}selected{% endif %}>Recurrida</option>
-                            <option value="dismissed" {% if record and record.status.value == 'dismissed' %}selected{% endif %}>Anulada</option>
+                            <option value="pendiente" {% if record and record.status.value == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                            <option value="pagado" {% if record and record.status.value == 'pagado' %}selected{% endif %}>Pagada</option>
+                            <option value="reclamado" {% if record and record.status.value == 'reclamado' %}selected{% endif %}>Recurrida</option>
+                            <option value="rechazado" {% if record and record.status.value == 'rechazado' %}selected{% endif %}>Anulada</option>
                         </select>
                     </div>
                 </div>

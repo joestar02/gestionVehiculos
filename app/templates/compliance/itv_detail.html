@@ -58,12 +58,12 @@
                             {% endif %}
                         </p>
                         <p><strong>Estado:</strong> 
-                            {% if record.status.value == 'passed' %}
-                                <span class="badge bg-success">Aprobada</span>
-                            {% elif record.status.value == 'failed' %}
-                                <span class="badge bg-danger">No Aprobada</span>
+                            {% if record.result.value == 'favorable' %}
+                                <span class="badge bg-success">Favorable</span>
+                            {% elif record.result.value == 'desfavorable' %}
+                                <span class="badge bg-warning">Desfavorable</span>
                             {% else %}
-                                <span class="badge bg-secondary">{{ record.status.value }}</span>
+                                <span class="badge bg-danger">Negativa</span>
                             {% endif %}
                         </p>
                     </div>

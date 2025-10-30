@@ -24,10 +24,7 @@
                         <th>Vehículo</th>
                         <th>Fecha Inspección</th>
                         <th>Fecha Vencimiento</th>
-                        <th>Resultado</th>
-                        <th>Centro</th>
-                        <th>Costo</th>
-                        <th>Estado</th>
+                        <th>Resultado</th>                      
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -51,17 +48,6 @@
                                 <span class="badge bg-warning">Desfavorable</span>
                             {% else %}
                                 <span class="badge bg-danger">Negativa</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ record.inspection_center or 'N/A' }}</td>
-                        <td>{{ "€{:,.2f}".format(record.cost) if record.cost else 'N/A' }}</td>
-                        <td>
-                            {% if record.status.value == 'passed' %}
-                                <span class="badge bg-success">Aprobada</span>
-                            {% elif record.status.value == 'failed' %}
-                                <span class="badge bg-danger">No Aprobada</span>
-                            {% else %}
-                                <span class="badge bg-secondary">{{ record.status.value }}</span>
                             {% endif %}
                         </td>
                         <td>

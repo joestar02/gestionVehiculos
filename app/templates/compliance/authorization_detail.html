@@ -117,8 +117,9 @@ function confirmDelete(recordId) {
     if (confirm('¿Estás seguro de que deseas eliminar esta autorización?')) {
         var form = document.createElement('form');
         form.method = 'POST';
-        form.action = '{{ url_for("compliance.delete_authorization", auth_id="") }}' + recordId;
-        
+        // Build URL using numeric placeholder to avoid passing empty string to url_for
+        form.action = '{{ url_for("compliance.delete_authorization", auth_id=0) }}'.replace('/0/delete', '/' + recordId + '/delete');
+
         document.body.appendChild(form);
         form.submit();
     }

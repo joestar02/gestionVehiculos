@@ -61,13 +61,13 @@
             </div>
             <div class="card-body">
                 <p><strong>Estado:</strong> 
-                    {% if record.status.value == 'paid' %}
+                    {% if record.status.value == 'pagado' %}
                         <span class="badge bg-success">Pagada</span>
-                    {% elif record.status.value == 'pending' %}
+                    {% elif record.status.value == 'pendiente' %}
                         <span class="badge bg-warning">Pendiente</span>
-                    {% elif record.status.value == 'appealed' %}
+                    {% elif record.status.value == 'reclamado' %}
                         <span class="badge bg-info">Recurrida</span>
-                    {% elif record.status.value == 'dismissed' %}
+                    {% elif record.status.value == 'rechazado' %}
                         <span class="badge bg-secondary">Anulada</span>
                     {% else %}
                         <span class="badge bg-danger">{{ record.status.value }}</span>
@@ -100,11 +100,11 @@
                 <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Estado</h5>
             </div>
             <div class="card-body">
-                {% if record.status.value == 'pending' and record.payment_deadline and record.payment_deadline < now %}
+                {% if record.status.value == 'pendiente' and record.payment_deadline and record.payment_deadline < now %}
                     <div class="alert alert-danger">
                         <i class="bi bi-x-circle"></i> Multa Vencida
                     </div>
-                {% elif record.status.value == 'pending' %}
+                {% elif record.status.value == 'pendiente' %}
                     <div class="alert alert-warning">
                         <i class="bi bi-clock"></i> Pago Pendiente
                     </div>
@@ -125,7 +125,7 @@
                     <i class="bi bi-pencil"></i> Editar Registro
                 </a>
                 
-                {% if record.status.value == 'pending' %}
+                {% if record.status.value == 'pendiente' %}
                 <button class="btn btn-success w-100 mb-2" onclick="markAsPaid({{ record.id }})">
                     <i class="bi bi-check-circle"></i> Marcar como Pagada
                 </button>
@@ -145,7 +145,8 @@ function markAsPaid(fineId) {
     if (paymentDate) {
         var form = document.createElement('form');
         form.method = 'POST';
-        form.action = '{{ url_for("compliance.pay_fine", fine_id="") }}' + fineId;
+    // build URL safely using numeric placeholder
+    form.action = '{{ url_for("compliance.pay_fine", fine_id=0) }}'.replace('/0/pay', '/' + fineId + '/pay');
         
         var paymentDateInput = document.createElement('input');
         paymentDateInput.type = 'hidden';
@@ -162,7 +163,7 @@ function confirmDelete(recordId) {
     if (confirm('¿Estás seguro de que deseas eliminar este registro de multa?')) {
         var form = document.createElement('form');
         form.method = 'POST';
-        form.action = '{{ url_for("compliance.delete_fine", fine_id="") }}' + recordId;
+    form.action = '{{ url_for("compliance.delete_fine", fine_id=0) }}'.replace('/0/delete', '/' + recordId + '/delete');
         
         document.body.appendChild(form);
         form.submit();
