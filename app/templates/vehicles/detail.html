@@ -3,24 +3,18 @@
 {% block title %}{{ vehicle.license_plate }} - {{ app_name }}{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-6">
-        <h1><i class="bi bi-car-front"></i> {{ vehicle.license_plate }}</h1>
-        <p class="text-muted">{{ vehicle.make }} {{ vehicle.model }} ({{ vehicle.year }})</p>
-    </div>
-    <div class="col-md-6 text-end">
-        <a href="{{ url_for('vehicles.edit_vehicle', vehicle_id=vehicle.id) }}" class="btn btn-warning">
-            <i class="bi bi-pencil"></i> Editar
-        </a>
-                <form method="POST" action="{{ url_for('vehicles.delete_vehicle', vehicle_id=vehicle.id) }}" 
-                            style="display: inline;" onsubmit="return confirm('¿Estás seguro de eliminar este vehículo?');">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <button type="submit" class="btn btn-danger">
-                <i class="bi bi-trash"></i> Eliminar
-            </button>
-        </form>
-    </div>
-</div>
+{% from '_includes/macros.html' import page_header %}
+{% call page_header(vehicle.license_plate, '<i class="bi bi-car-front"></i>', vehicle.make ~ ' ' ~ vehicle.model ~ ' (' ~ vehicle.year|string ~ ')') %}
+    <a href="{{ url_for('vehicles.edit_vehicle', vehicle_id=vehicle.id) }}" class="btn btn-warning">
+        <i class="bi bi-pencil"></i> Editar
+    </a>
+    <form method="POST" action="{{ url_for('vehicles.delete_vehicle', vehicle_id=vehicle.id) }}" style="display: inline;" onsubmit="return confirm('¿Estás seguro de eliminar este vehículo?');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Eliminar
+        </button>
+    </form>
+{% endcall %}
 
 <div class="row">
     <div class="col-md-8">

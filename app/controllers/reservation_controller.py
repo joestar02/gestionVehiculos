@@ -31,6 +31,19 @@ def list_reservations():
         start = None
         end = None
 
+    # pagination params
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+    try:
+        per_page = int(request.args.get('per_page', 20))
+    except ValueError:
+        per_page = 20
+
+    # preserved query params (all except page) to keep filters when navigating pages
+    preserved_args = {k: v for k, v in request.args.items() if k != 'page'}
+
     if current_user.role == UserRole.DRIVER:
         # Drivers can only see their own reservations
         driver = current_user.driver
@@ -38,16 +51,19 @@ def list_reservations():
             flash('No se encontró conductor asociado.', 'error')
             return redirect(url_for('main.index'))
         if start and end:
-            reservations = ReservationService.get_reservations_by_driver_and_date_range(driver.id, start, end)
+            pagination = ReservationService.get_reservations_by_driver_and_date_range_paginated(driver.id, start, end, page=page, per_page=per_page)
         else:
-            reservations = ReservationService.get_reservations_by_driver(driver.id)
+            pagination = ReservationService.get_reservations_by_driver_paginated(driver.id, page=page, per_page=per_page)
     else:
         # Admins and managers see all reservations
         if start and end:
-            reservations = ReservationService.get_reservations_by_date_range(start, end)
+            pagination = ReservationService.get_reservations_by_date_range_paginated(start, end, page=page, per_page=per_page)
         else:
-            reservations = ReservationService.get_all_reservations()
-    return render_template('reservations/list.html', reservations=reservations)
+            pagination = ReservationService.get_all_reservations_paginated(page=page, per_page=per_page)
+
+    # pagination is a Pagination object from Flask-SQLAlchemy
+    reservations = pagination.items if hasattr(pagination, 'items') else []
+    return render_template('reservations/list.html', reservations=reservations, pagination=pagination, preserved_args=preserved_args)
 
 @reservation_bp.route('/<int:reservation_id>')
 @login_required

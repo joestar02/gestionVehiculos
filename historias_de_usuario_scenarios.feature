@@ -1,190 +1,251 @@
-Feature: Historias de Usuario - Escenarios Given/When/Then
-  Archivo de escenarios BDD para las historias principales del Sistema de Gestión de Flota.
+Feature: Historias de Usuario - Escenarios completos Given/When/Then
+  Archivo BDD completo que cubre las historias detectadas en el código y plantillas.
 
   # -----------------
-  # Módulo: Autenticación
+  # Módulo: Autenticación y Usuarios
   # -----------------
-  Scenario: HU-01 - Inicio de sesión seguro (happy path)
+  Scenario: HU-A1 - Inicio de sesión seguro (happy path)
     Given un usuario registrado activo con username "user1" y contraseña "CorrectHorseBatteryStaple"
     And el token CSRF válido está presente en la página de login
     When el usuario envía POST a "/auth/login" con username, password y csrf_token
     Then la respuesta es 302 y redirige a "/dashboard"
     And la cookie de sesión está establecida con flags Secure y HttpOnly
 
-  Scenario: HU-01 - Inicio de sesión con credenciales inválidas (caso borde)
-    Given un intento de login con username "user1" y contraseña incorrecta
-    When se envía POST a "/auth/login" con datos inválidos
-    Then la respuesta es 401 o 403
-    And el cuerpo contiene un mensaje de error genérico que no indica si el usuario existe
-    And no se crea cookie de sesión
+  Scenario: HU-A1 - Inicio de sesión con 2FA requerido (caso borde)
+    Given un usuario con 2FA habilitado
+    When envía credenciales válidas
+    Then el servidor solicita código 2FA
+    When el usuario envía el código 2FA válido
+    Then la sesión se crea y redirige a "/dashboard"
 
-  Scenario: HU-02 - Cierre de sesión (happy path)
+  Scenario: HU-A2 - Logout e invalidación (happy path)
     Given un usuario autenticado con sesión válida
     When envía POST a "/auth/logout" con CSRF válido
     Then la sesión se invalida en servidor
     And la cookie de sesión es eliminada
     And el usuario es redirigido a "/"
 
-  Scenario: HU-03 - Gestión de roles (happy path)
+  Scenario: HU-A3 - Gestión de usuarios y roles (happy path)
     Given un Administrador autenticado
-    When crea un rol nuevo via POST a "/admin/roles" con permisos CRUD para recursos X
-    Then el rol queda persistido y listado en GET "/admin/roles"
-    And la auditoría registra quién creó el rol
+    When crea un usuario nuevo via POST a "/admin/users" y asigna roles via "/admin/roles"
+    Then el usuario aparece en GET "/admin/users"
+    And las acciones quedan registradas en la tabla de auditoría
 
   # -----------------
-  # Módulo: Vehículos
+  # Módulo: Vehículos y Transferencias
   # -----------------
-  Scenario: HU-10 - Registrar nuevo vehículo (happy path)
-    Given un Administrador en la página "/vehicles/new"
-    When completa el formulario con matrícula única y VIN válido y envía
-    Then POST /api/vehicles retorna 201 y el body contiene el Vehicle con id
-    And el vehículo aparece en GET /vehicles
+  Scenario: HU-V1 - Crear vehículo con renting (happy path)
+    Given un Administrador en "/vehicles/new"
+    When completa el formulario con vehicle_type="renting" y contract_id válido
+    Then POST /api/vehicles retorna 201 y el Vehicle incluye contract_id
 
-  Scenario: HU-10 - Registrar vehículo con matrícula duplicada (caso borde)
-    Given un vehículo existente con matrícula "ABC-1234"
-    When el administrador intenta crear otro vehículo con la misma matrícula
-    Then el servidor responde 400 con error de validación indicando duplicidad
+  Scenario: HU-V1 - Crear vehículo sin contract_id cuando renting (caso borde)
+    Given formulario con vehicle_type="renting" y contract_id ausente
+    When envía el formulario
+    Then servidor responde 400 con error indicando que contract_id es obligatorio
 
-  Scenario: HU-11 - Filtrar lista de vehículos (happy path)
-    Given varios vehículos con distintos estados y unidades organizativas
-    When el usuario solicita GET /vehicles?status=available&type=turismo
-    Then la respuesta contiene solo vehículos que cumplan los filtros
-    And la respuesta incluye total_count y paginación
+  Scenario: HU-V2 - Transferir vehículo entre unidades (happy path)
+    Given un vehículo con organization_unit_id=A
+    When crea una transferencia a organization B mediante /vehicle_transfers
+    Then el vehicle.organization_unit_id es B
+    And se registra evento de transferencia en historial
 
-  Scenario: HU-12 - Ver ficha detallada y historial (happy path)
-    Given un vehículo con eventos históricos (asignación, mantenimiento, multa)
-    When visita GET /vehicles/{id}
-    Then la página muestra pestañas: General, Historial, Documentos, Mantenimiento
-    And el historial está ordenado por fecha descendente
+  Scenario: HU-V3 - Historial export CSV (happy path)
+    Given un vehículo con historial
+    When solicita GET /vehicles/{id}/history?format=csv
+    Then se recibe CSV con cabecera y filas de eventos
 
-  Scenario: HU-12 - Eventos sin fecha concreta (caso borde)
-    Given un evento histórico sin fecha pero con created_at
-    When se muestra el historial
-    Then el evento aparece ordenado usando created_at como fallback
+  Scenario: HU-V4 - Búsqueda avanzada y paginación (caso borde)
+    Given una flota grande
+    When solicita GET /vehicles?status=available&page=10&size=25&q=modelo
+    Then la respuesta incluye items, total_count, page y page_size
 
   # -----------------
-  # Módulo: Conductores
+  # Módulo: Conductores y Asignaciones
   # -----------------
-  Scenario: HU-20 - Registrar conductor (happy path)
+  Scenario: HU-D1 - Crear conductor y validación de NIF (happy path)
     Given un Administrador en "/drivers/new"
-    When completa los campos obligatorios y añade carnets con fechas de vencimiento
+    When completa NIF correcto y campos obligatorios
     Then POST /api/drivers retorna 201 y el driver aparece en la lista
 
-  Scenario: HU-20 - Registrar conductor con NIF inválido (caso borde)
-    Given un formulario con NIF mal formado
-    When se envía el formulario
-    Then el servidor responde 400 con mensaje de validación sobre NIF
+  Scenario: HU-D1 - NIF inválido (caso borde)
+    Given formulario con NIF mal formado
+    When se envía
+    Then servidor devuelve 400 con mensaje de validación
 
-  Scenario: HU-21 - Asignación de conductor (happy path)
-    Given un vehículo disponible y un conductor con carnet válido
-    When POST /api/assignments con start_date y end_date no solapados
-    Then se crea la asignación y GET /vehicles/{id}/assignments incluye la nueva entrada
+  Scenario: HU-D2 - Asignación sin solapamiento (happy path)
+    Given vehículo y conductor libres
+    When POST /api/assignments con fechas válidas
+    Then la asignación queda registrada
 
-  Scenario: HU-21 - Asignación con solapamiento (caso borde)
-    Given una asignación existente que cubre 2025-11-01..2025-11-05
-    When se intenta crear otra asignación para el mismo vehículo que solapa esas fechas
-    Then el servidor responde 409 con detalles del conflicto
+  Scenario: HU-D2 - Asignación con solapamiento (caso borde)
+    Given asignación existente en rango R
+    When intenta crear selección que solapa R
+    Then API devuelve 409 con detalles del conflicto
+
+  Scenario: HU-D3 - Estadísticas del conductor (happy path)
+    Given conductor con multas y asignaciones previas
+    When visita /driver/{id}/dashboard
+    Then se muestran estadísticas y links a historial
 
   # -----------------
   # Módulo: Reservas
   # -----------------
-  Scenario: HU-30 - Solicitar reserva (happy path)
-    Given un empleado autenticado en /reservations/new
-    When rellena fechas válidas start < end y selecciona vehículo disponible
-    And hace POST /reservations con CSRF
-    Then la reserva queda en estado pending y se notifica al supervisor
+  Scenario: HU-R1 - Crear reserva (happy path)
+    Given usuario autenticado en /reservations/new
+    When envía POST con start<end y vehículo disponible
+    Then la reserva queda en estado pending y notifica al supervisor
 
-  Scenario: HU-30 - Solicitar reserva con rango inválido (caso borde)
-    Given start_date >= end_date
-    When el empleado envía el formulario
-    Then el servidor responde 400 con error de validación "start must be before end"
+  Scenario: HU-R1 - Reserva con rango inválido (caso borde)
+    Given start >= end
+    When envía
+    Then el servidor devuelve 400
 
-  Scenario: HU-31 - Aprobar reserva (happy path)
-    Given una reserva en estado pending y un supervisor autorizado
-    When el supervisor PATCH /api/reservations/{id} con status=approved
-    Then la reserva pasa a approved
-    And se crea bloqueo en el vehículo para ese rango
-    And el solicitante recibe notificación
+  Scenario: HU-R2 - Aprobar reserva (happy path)
+    Given reserva pending y supervisor autorizado
+    When PATCH /api/reservations/{id} con status=approved
+    Then la reserva pasa a approved y se crea asignación temporal
 
-  Scenario: HU-31 - Rechazar reserva por conflicto (caso borde)
-    Given otra reserva aprobada solapando el mismo rango
-    When el supervisor intenta aprobar la reserva pending
-    Then la API devuelve 409 y el estado permanece en pending o pasa a rejected según política
+  Scenario: HU-R2 - Rechazar por conflicto (caso borde)
+    Given reserva que solapa con otra aprobada
+    When intenta aprobar
+    Then API devuelve 409 y se informa del conflicto
 
   # -----------------
-  # Módulo: Mantenimiento
+  # Módulo: Mantenimiento y Pickups
   # -----------------
-  Scenario: HU-40 - Registrar intervención de mantenimiento (happy path)
-    Given un técnico en /maintenance/new
-    When crea un registro con vehicle_id, performed_at, mileage y cost
-    Then POST /api/maintenance retorna 201
-    And el historial del vehículo incluye la intervención
+  Scenario: HU-M1 - Crear mantenimiento con piezas (happy path)
+    Given técnico en /maintenance/new
+    When sube datos y piezas, cost y mileage
+    Then POST /api/maintenance retorna 201 y se registra evento
 
-  Scenario: HU-40 - Registrar intervención con coste alto (caso borde)
-    Given un coste > umbral configurado
-    When se guarda la intervención
-    Then el sistema genera alerta hacia finanzas (registro / notificación)
+  Scenario: HU-M1 - Coste alto -> alerta (caso borde)
+    Given cost > threshold
+    When guarda
+    Then alerta a finanzas es registrada
+
+  Scenario: HU-M2 - Registro pickup (happy path)
+    Given empleado realiza pickup
+    When registra salida y llegada
+    Then registro queda en DB con kilometrajes registrados
 
   # -----------------
-  # Módulo: Cumplimiento Normativo
+  # Módulo: Cumplimiento
   # -----------------
-  Scenario: HU-50 - Registrar ITV y alertas (happy path)
-    Given un responsable crea VehicleItv con expiry_date en 12 meses
-    When guarda el registro
-    Then en la configuración aparece tarea/alerta para X días antes del expiry
+  Scenario: HU-C1 - Crear ITV con upload (happy path)
+    Given responsable en /compliance/itv/new
+    When sube PDF y guarda expiry_date
+    Then archivo se guarda y registro queda en DB
 
-  Scenario: HU-51 - Registrar impuesto pagado (happy path)
-    Given un registro de impuesto con payment_status=paid
-    When se crea POST /api/taxes
-    Then GET /vehicles/{id}/compliance muestra status `paid` para el periodo
+  Scenario: HU-C1 - Upload inválido (caso borde)
+    Given upload con extensión no permitida
+    When intenta subir
+    Then servidor responde 400
 
-  Scenario: HU-51 - Impuesto pendiente/overdue (caso borde)
-    Given un impuesto con due_date pasado y payment_status=pending
-    When se consulta compliance
-    Then aparece como `overdue` y se genera notificación según reglas
+  Scenario: HU-C2 - Registrar impuesto y overdue
+    Given impuesto con due_date pasado
+    When consulta compliance
+    Then aparece overdue y alerta se genera
 
-  Scenario: HU-52 - Registrar multa (happy path)
-    Given una multa emitida asociada a un vehículo
-    When POST /api/fines con datos válidos
-    Then la multa se crea con estado `pending` y aparece en el perfil del vehículo
+  Scenario: HU-C3 - Crear multa y asignarla a conductor
+    Given multa con driver_id
+    When POST /api/fines
+    Then multa aparece en historial del driver
 
-  Scenario: HU-52 - Multa sin conductor asociado (caso borde)
-    Given multa sin driver_id
-    When se registra la multa
-    Then la multa se asocia sólo al vehículo y no se aplica impacto a conductor
+  Scenario: HU-C3 - Recurso de multa
+    Given multa en estado pending
+    When conductor presenta recurso
+    Then estado pasa a contested y se registra histórico
 
-  Scenario: HU-53 - Crear autorización especial (happy path)
-    Given responsable crea autorización con start_date y end_date válidos
-    When POST /api/authorizations
-    Then autorización aparece en /vehicles/{id}/authorizations y se puede buscar por zona
-
-  Scenario: HU-53 - Crear autorización con end_date anterior a start_date (caso borde)
-    Given end_date < start_date
-    When intenta crear autorización
-    Then servidor responde 400 con error de validación
+  Scenario: HU-C4 - Crear autorización y búsqueda por zona
+    Given autorización para ZONA_X
+    When GET /api/authorizations?zone=ZONA_X
+    Then autorización aparece en resultados
 
   # -----------------
   # Módulo: Organizaciones
   # -----------------
-  Scenario: HU-60 - CRUD de unidades organizativas (happy path)
-    Given un administrador en /organizations
-    When crea una unidad padre y luego una unidad hija vinculada al padre
-    Then GET /api/organizations devuelve la jerarquía con relación padre->hijo
+  Scenario: HU-O1 - Crear y exportar árbol (happy path)
+    Given administrador crea unidades
+    When solicita export JSON
+    Then se obtiene árbol con jerarquía correcta
 
-  Scenario: HU-60 - Importar árbol JSON inválido (caso borde)
-    Given un JSON malformado enviado para importar árbol
-    When se realiza la importación
-    Then el servidor responde 400 y no modifica la jerarquía existente
+  Scenario: HU-O1 - Importar JSON inválido (caso borde)
+    Given JSON malformado
+    When POST /api/organizations/import
+    Then responde 400 y no aplica cambios
 
   # -----------------
-  # Módulo: Dashboard y Reportes
+  # Módulo: Proveedores
   # -----------------
-  Scenario: HU-70 - Dashboard operativo (happy path)
-    Given datos de flota con vehículos, reservas y vencimientos
-    When el usuario accede a /dashboard
-    Then los widgets muestran métricas calculadas y enlaces a vistas filtradas
+  Scenario: HU-P1 - Crear proveedor (happy path)
+    Given administrador en /providers/new
+    When crea proveedor con datos válidos
+    Then proveedor aparece en listado
 
-  Scenario: HU-70 - Exportar reporte con filtros (caso borde)
-    Given filtros que devuelven 0 resultados
-    When el usuario solicita export CSV/PDF
-    Then el archivo se genera (vacío o con cabeceras) y la operación no falla
+  Scenario: HU-P1 - Eliminar proveedor en uso (caso borde)
+    Given proveedor asociado a registros activos
+    When intenta eliminar
+    Then servidor devuelve 409
+
+  # -----------------
+  # Módulo: Transferencias y Cesiones
+  # -----------------
+  Scenario: HU-T1 - Registrar cesión (happy path)
+    Given cesión planeada entre unidades
+    When crea cesión
+    Then vehículo cambia estado y se registra cesión
+
+  Scenario: HU-T1 - Cesión sin fecha (caso borde)
+    Given formulario incompleto
+    When guarda
+    Then 400 validación
+
+  # -----------------
+  # Módulo: Archivos y Descargas
+  # -----------------
+  Scenario: HU-F1 - Subir documento (happy path)
+    Given usuario autorizado en /vehicles/{id}/documents/new
+    When sube documento válido
+    Then archivo está en static/uploads y metadata en DB
+
+  Scenario: HU-F2 - Descargar con permiso (happy path)
+    Given usuario con permiso
+    When solicita descarga
+    Then servidor devuelve archivo con headers seguros
+
+  Scenario: HU-F2 - Descargar sin permiso (caso borde)
+    Given usuario sin permiso
+    When solicita descarga
+    Then el servidor responde 403
+
+  # -----------------
+  # Módulo: Dashboard y Export
+  # -----------------
+  Scenario: HU-DASH1 - Widgets del dashboard
+    Given datos de flota
+    When visita /dashboard
+    Then widgets muestran métricas y enlaces
+
+  Scenario: HU-DASH2 - Export filtros
+    Given filtros aplicados
+    When solicita export CSV
+    Then se entrega archivo correspondiente
+
+  # -----------------
+  # Observabilidad, Límite y Errores
+  # -----------------
+  Scenario: HU-S1 - Páginas de error (404)
+    Given petición a recurso inexistente
+    When servidor responde
+    Then muestra template errors/404.html
+
+  Scenario: HU-S2 - Rate limiting (login)
+    Given múltiples intentos fallidos
+    When supera umbral
+    Then login responde 429
+
+  Scenario: HU-S3 - Auditoría CRUD
+    Given administrador realiza cambios
+    When crea/edita/elimina recursos
+    Then auditoría registra who/when/what

@@ -3,16 +3,12 @@
 {% block title %}Reservas - {{ app_name }}{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-6">
-        <h1><i class="bi bi-calendar-check"></i> Reservas</h1>
-    </div>
-    <div class="col-md-6 text-end">
-        <a href="{{ url_for('reservations.create_reservation') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Nueva Reserva
-        </a>
-    </div>
-</div>
+{% from '_includes/macros.html' import page_header %}
+{% call page_header('Reservas', '<i class="bi bi-calendar-check"></i>') %}
+    <a href="{{ url_for('reservations.create_reservation') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Nueva Reserva
+    </a>
+{% endcall %}
 
 <div class="card">
     <div class="card-body">
@@ -66,6 +62,68 @@
                 </tbody>
             </table>
         </div>
+
+            {# Pagination controls #}
+            {% if pagination %}
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="text-muted small">
+                        Mostrando {{ pagination.page * pagination.per_page - (pagination.per_page - 1) if pagination.total>0 else 0 }} - {{ (pagination.page-1)*pagination.per_page + reservations|length }} de {{ pagination.total }} reservas
+                    </div>
+                    <!-- per_page selector form -->
+                    <form method="get" class="d-flex align-items-center" id="perPageForm">
+                        {# Preserve other query params except page and per_page #}
+                        {% for k, v in request.args.items() %}
+                            {% if k != 'per_page' and k != 'page' %}
+                                <input type="hidden" name="{{ k }}" value="{{ v }}" />
+                            {% endif %}
+                        {% endfor %}
+                        <label for="per_page" class="me-2 mb-0 small text-muted">Por página</label>
+                        <select name="per_page" id="per_page" class="form-select form-select-sm" style="width:auto" onchange="document.getElementById('perPageForm').submit();">
+                            {% set current_pp = request.args.get('per_page', pagination.per_page if pagination else 20)|int %}
+                            <option value="10" {% if current_pp==10 %}selected{% endif %}>10</option>
+                            <option value="20" {% if current_pp==20 %}selected{% endif %}>20</option>
+                            <option value="50" {% if current_pp==50 %}selected{% endif %}>50</option>
+                            <option value="100" {% if current_pp==100 %}selected{% endif %}>100</option>
+                        </select>
+                    </form>
+                </div>
+                <nav aria-label="Paginación reservas">
+                    <ul class="pagination mb-0">
+                        {% set start = pagination.page - 2 if pagination.page - 2 > 0 else 1 %}
+                        {% set end = pagination.page + 2 if pagination.page + 2 <= pagination.pages else pagination.pages %}
+
+                        {% if pagination.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('reservations.list_reservations', **(preserved_args or {}), page=pagination.prev_num) }}" aria-label="Anterior">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                        {% endif %}
+
+                        {# page numbers window #}
+                        {% for p in range(start, end+1) %}
+                        <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('reservations.list_reservations', **(preserved_args or {}), page=p) }}">{{ p }}</a>
+                        </li>
+                        {% endfor %}
+
+                        {% if pagination.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('reservations.list_reservations', **(preserved_args or {}), page=pagination.next_num) }}" aria-label="Siguiente">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+
         {% else %}
         <div class="text-center py-5">
             <i class="bi bi-calendar-check display-1 text-muted"></i>

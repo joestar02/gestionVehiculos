@@ -1,0 +1,174 @@
+' PlantUML ERD generated from SQLAlchemy models
+' Save as docs/db_erd.puml
+
+@startuml db_erd
+!theme plain
+
+entity USERS {
+  * id : INTEGER
+  --
+  email : STRING
+  username : STRING
+}
+
+entity ORGANIZATION_UNITS {
+  * id : INTEGER
+  --
+  name : STRING
+  code : STRING
+  parent_id : INTEGER
+}
+
+entity VEHICLES {
+  * id : INTEGER
+  --
+  license_plate : STRING
+  vin : STRING
+  organization_unit_id : INTEGER
+}
+
+entity DRIVERS {
+  * id : INTEGER
+  --
+  document_number : STRING
+  driver_license_number : STRING
+  organization_unit_id : INTEGER
+}
+
+entity VEHICLE_DRIVER_ASSOCIATIONS {
+  * id : INTEGER
+  --
+  vehicle_id : INTEGER
+  driver_id : INTEGER
+  start_date : DATETIME
+  end_date : DATETIME
+}
+
+entity VEHICLE_ASSIGNMENTS {
+  * id : INTEGER
+  --
+  vehicle_id : INTEGER
+  driver_id : INTEGER
+  organization_unit_id : INTEGER
+  start_date : DATETIME
+  end_date : DATETIME
+}
+
+entity RESERVATIONS {
+  * id : INTEGER
+  --
+  vehicle_id : INTEGER
+  driver_id : INTEGER
+  user_id : INTEGER
+  organization_unit_id : INTEGER
+  start_date : DATETIME
+  end_date : DATETIME
+}
+
+entity VEHICLE_PICKUPS {
+  * id : INTEGER
+  --
+  reservation_id : INTEGER
+  vehicle_id : INTEGER
+  driver_id : INTEGER
+}
+
+entity RENTING_CONTRACTS {
+  * id : INTEGER
+  --
+  vehicle_id : INTEGER
+  contract_number : STRING
+}
+
+entity MAINTENANCE_RECORDS {
+  * id : INTEGER
+  --
+  vehicle_id : INTEGER
+  provider_id : INTEGER
+}
+
+entity PROVIDERS {
+  * id : INTEGER
+  --
+  name : STRING
+}
+
+entity ITV_RECORDS {
+  * id : INTEGER
+  --
+  vehicle_id : INTEGER
+  inspection_date : DATETIME
+}
+
+entity VEHICLE_TAXES {
+  * id : INTEGER
+  --
+  vehicle_id : INTEGER
+  tax_year : INTEGER
+}
+
+entity VEHICLE_INSURANCES {
+  * id : INTEGER
+  --
+  vehicle_id : INTEGER
+  policy_number : STRING
+}
+
+entity FINES {
+  * id : INTEGER
+  --
+  vehicle_id : INTEGER
+  driver_id : INTEGER
+  fine_number : STRING
+}
+
+entity URBAN_ACCESS_AUTHORIZATIONS {
+  * id : INTEGER
+  --
+  vehicle_id : INTEGER
+  authorization_number : STRING
+}
+
+entity ACCIDENTS {
+  * id : INTEGER
+  --
+  vehicle_id : INTEGER
+  driver_id : INTEGER
+}
+
+' Relationships
+ORGANIZATION_UNITS ||--o{ VEHICLES : contains
+ORGANIZATION_UNITS ||--o{ DRIVERS : contains
+ORGANIZATION_UNITS ||--o{ VEHICLE_ASSIGNMENTS : owns
+
+VEHICLES ||--o{ VEHICLE_DRIVER_ASSOCIATIONS : has_associations
+DRIVERS ||--o{ VEHICLE_DRIVER_ASSOCIATIONS : has_associations
+
+VEHICLES ||--o{ VEHICLE_ASSIGNMENTS : has_assignments
+DRIVERS ||--o{ VEHICLE_ASSIGNMENTS : has_assignments
+
+VEHICLES ||--o{ RESERVATIONS : has_reservations
+DRIVERS ||--o{ RESERVATIONS : has_reservations
+USERS ||--o{ RESERVATIONS : creates
+
+RESERVATIONS ||--o{ VEHICLE_PICKUPS : may_have
+VEHICLES ||--o{ VEHICLE_PICKUPS : pickups
+DRIVERS ||--o{ VEHICLE_PICKUPS : pickups
+
+VEHICLES ||--o{ RENTING_CONTRACTS : renting_contracts
+VEHICLES ||--o{ MAINTENANCE_RECORDS : maintenance_records
+PROVIDERS ||--o{ MAINTENANCE_RECORDS : provides
+
+VEHICLES ||--o{ ITV_RECORDS : itv_records
+VEHICLES ||--o{ VEHICLE_TAXES : taxes
+VEHICLES ||--o{ VEHICLE_INSURANCES : insurances
+VEHICLES ||--o{ FINES : fines
+VEHICLES ||--o{ URBAN_ACCESS_AUTHORIZATIONS : authorizations
+VEHICLES ||--o{ ACCIDENTS : accidents
+
+USERS ||--o{ VEHICLE_DRIVER_ASSOCIATIONS : creates
+USERS ||--o{ VEHICLE_ASSIGNMENTS : creates
+USERS ||--o{ MAINTENANCE_RECORDS : creates
+USERS ||--o{ FINES : creates
+
+@enduml

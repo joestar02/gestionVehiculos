@@ -21,233 +21,216 @@ Este documento reescribe y amplía las historias de usuario del sistema. Para ca
   - CSRF protection habilitada.
 
 - Pasos UI:
-  1. Usuario navega a la página de login.
-  2. Introduce `username` y `password` y envía el formulario.
-  3. Si 2FA está habilitado para el usuario, se muestra pantalla de código temporal.
-  4. Tras autenticación correcta, redirección a `/dashboard`.
+   # 📋 Historias de Usuario (Cobertura completa del código y plantillas detectadas)
 
-- Endpoints / API:
-  - POST `/auth/login` (form-encoded). Request: { username, password, csrf_token }
-  - POST `/auth/2fa` (si aplica). Request: { user_id, code }
+   Esta versión amplía las historias de usuario para cubrir la totalidad de rutas, modelos y plantillas detectadas en el repositorio (`app/controllers`, `app/models`, `app/templates`). Para cada área incluyo: rol, objetivo, criterios de aceptación (AC), endpoints/API, reglas de negocio y casos borde. Además añado historias para operaciones de import/export, archivos y auditoría.
 
-- Datos / Modelos relevantes:
-  - `User { id, username, email, password_hash, is_active, roles[] }`
+   Notas sobre alcance y metodología
+   - He revisado los controladores y plantillas del proyecto para identificar comportamientos visibles (CRUD, formularios, páginas y APIs). Las historias cubren: vehículos, transferencias, reservas, asignaciones, mantenimientos, ITV/seguros/impuestos/multas/autorizaciones, conductores, organizaciones, proveedores, pickups, cesiones y operaciones auxiliares (auth, dashboard, uploads, reportes).
+   - Si detectas un caso concreto que no aparezca aquí (un endpoint nuevo o una plantilla especial), dímelo y lo añado.
 
-- Reglas de negocio:
-  - No revelar si username/email existe en mensajes de error.
-  - Bloquear cuenta temporal tras N intentos fallidos; notificar a admin.
+   ---
 
-- Casos borde y errores:
-  - Intento con CSRF inválido => 400 y registro de evento.
-  - Sesiones concurrentes controladas por política (permitir/denegar según config).
+   ## 🔐 Módulo: Autenticación y Usuarios
 
-### HU-02: Cierre de sesión seguro
-- Rol: Usuario autenticado
-- Objetivo: Invalidar la sesión actual y limpiar cookies de sesión.
-- Criterios de aceptación:
-  1. El endpoint POST `/auth/logout` invalida la sesión en servidor y borra cookie.
-  2. Redirigir a la página pública de inicio.
+   HU-A1: Inicio de sesión seguro (form & API)
+   - Rol: Usuario autenticado
+   - Objetivo: Permitir login seguro por formulario y por API (si aplica). Protege CSRF y rate-limit.
+   - AC:
+     - POST `/auth/login` acepta `username`/`password`+CSRF en UI; para API acepta credenciales y devuelve token.
+     - Errores 401/403 en credenciales inválidas; 400 en CSRF inválido.
+     - Soporta 2FA (cuando configurado).
+   - Casos borde: bloqueo temporal de cuenta, sesión inválida, token expired.
 
-- Pasos UI:
-  1. Usuario pulsa "Cerrar sesión".
-  2. Se envía petición POST con CSRF y, tras éxito, se redirige a `/`.
+   HU-A2: Logout
+   - POST `/auth/logout` invalida sesión y limpia cookies.
 
-### HU-03: Gestión de roles y permisos (Administrador)
-- Rol: Administrador
-- Objetivo: Crear, editar y asignar roles que controlen accesos a módulos.
-- Criterios de aceptación:
-  - AC1: Existe UI/Admin para crear roles (`/admin/roles`) y asignar permisos (CRUD por recurso).
-  - AC2: Cambios surten efecto sin reinicio (control por claims en sesión o revalidación de token).
+   HU-A3: Gestión de usuarios y roles
+   - CRUD de usuarios (`/admin/users`), asignación de roles y reestablecimiento de contraseñas.
+   - Auditoría de cambios (who/when/what).
 
-- Reglas de negocio:
-  - No permitir crear roles con privilegios superiores al creador.
-  - Auditoría: registrar quien creó/ modificó roles.
+   ---
 
----
+   ## 🚗 Módulo: Vehículos (completo)
 
-## 🚗 Módulo: Vehículos
+   HU-V1: Crear/Editar/Eliminar vehículo (full)
+   - Rol: Administrador de flota
+   - Endpoints: GET/POST `/vehicles/new`, POST `/api/vehicles`, GET/POST `/vehicles/{id}/edit`, DELETE `/vehicles/{id}` (o POST con acción). Templates: `vehicles/form.html`, `vehicles/list.html`, `vehicles/detail.html`.
+   - AC:
+     - Validaciones: matrícula única, VIN único, VIN formato, año válido, si `vehicle_type == renting` entonces `contract_id` obligatorio.
+     - Al crear: redirigir a ficha; en API devuelve 201 con Location.
+     - Al eliminar: eliminar archivos relacionados (documentos) y registros históricos opcionales.
+   - Casos borde: intento de crear con matrícula duplicada (400), VIN mal formado, falta de provider/organization.
 
-### HU-10: Registrar nuevo vehículo
-- Rol: Administrador de flota
-- Objetivo: Añadir un vehículo con todos los metadatos obligatorios para inventario.
-- Criterios de aceptación:
-  1. La UI `/vehicles/new` permite introducir: matrícula, marca, modelo, año, tipo, combustible, número de bastidor (VIN), kilometraje inicial, estado, unidad organizativa, proveedor y documento/expediente asociado.
-  2. Validaciones: matrícula única, VIN único, campos obligatorios no vacíos, año razonable (1900..current_year+1).
-  3. Tras guardar, el vehículo aparece en la lista `/vehicles` y en la API GET `/api/vehicles/{id}` devuelve el objeto creado.
+   HU-V2: Transferencia de vehículo entre unidades
+   - Rol: Administrador
+   - Endpoints: `/vehicle_transfers` (controller `vehicle_transfer_controller.py`), forms para `cesion`/transfer (`assignments/cesion_form.html`).
+   - AC:
+     - Crear transferencia que registra origen/destino, motivo, fecha y responsable.
+     - Actualiza `organization_unit_id` del vehículo y registra evento en historial.
+     - Validar permisos y notificar a responsables.
 
-- API/Request:
-  - POST `/api/vehicles` {
-      registration_plate, vin, brand, model, year, vehicle_type, fuel_type, mileage, organization_unit_id, provider_id
-    }
+   HU-V3: Historial completo y export
+   - Página: `vehicles/detail.html` muestra pestañas para historial, impuestos, multas, autorizaciones, mantenimientos.
+   - AC:
+     - Historial ordenado por fecha desc; fallback `created_at` si falta fecha.
+     - Filtrado por tipo y export CSV del historial.
 
-- Modelo de respuesta esperado:
-  - Vehicle { id, registration_plate, vin, brand, model, year, type, fuel_type, mileage, status, organization_unit_id }
+   HU-V4: Búsqueda, filtros y paginación
+   - Endpoints: `/vehicles` con query params `status,type,org_id,available_from,available_to,q,page,size`.
+   - AC: respuesta incluye `total_count`, `page`, `page_size` y `items`.
 
-- Reglas de negocio:
-  - Si `vehicle_type == 'renting'` se debe vincular contrato de renting (campo contract_id obligatorio).
-  - Si `status == 'in_service'`, no debe permitir nuevas reservas hasta cambiar estado.
+   ---
 
-- Casos borde:
-  - Matrícula duplicada -> 400 con error de validación.
-  - VIN con formato inválido -> 400.
+   ## 👥 Módulo: Conductores y permisos
 
-### HU-11: Consultar lista de vehículos y filtros
-- Rol: Usuario autorizado
-- Objetivo: Visualizar y filtrar vehículos por estado, tipo, unidad organizativa, y disponibilidad.
-- Criterios de aceptación:
-  - AC1: GET `/vehicles` muestra listado paginado.
-  - AC2: Parámetros GET soportados: `?status=&type=&org_id=&available_from=&available_to=&q=`.
-  - AC3: Filtros combinados aplican lógicamente (AND) y la respuesta incluye total_count y páginas.
+   HU-D1: CRUD conductores
+   - Templates: `drivers/form.html`, `drivers/list.html`, `drivers/detail.html`.
+   - Campos: nombre, apellidos, NIF, email, teléfono, tipo, carnets (lista con tipo y fecha de vencimiento), organización.
+   - Reglas: validación NIF/NIE, notificaciones 30 días antes de vencimiento.
 
-- UI Steps:
-  1. Usuario abre `/vehicles`.
- 2. Aplica filtros y la lista se actualiza vía AJAX.
+   HU-D2: Asignación de conductor (assignments)
+   - Controller: `assignment_controller.py`; templates `assignments/form.html`, `assignments/list.html`.
+   - AC: crear asignación con `vehicle_id, driver_id, start_date, end_date`; validar solapamientos y devolver 409 con detalles si hay conflicto.
 
-### HU-12: Ficha detallada del vehículo y historial
-- Rol: Usuario autorizado / técnico
-- Objetivo: Consultar ficha completa, historial de asignaciones, mantenimientos, inspecciones, impuestos, multas y autorizaciones.
-- Criterios de aceptación:
-  - AC1: Página `/vehicles/{id}` muestra pestañas: General, Historial, Documentos, Mantenimiento.
-  - AC2: Historial está ordenado por fecha (desc) y agrupa por tipo con posibilidad de filtro.
+   HU-D3: Estadísticas del conductor
+   - Página `driver/dashboard.html` incluye conteos de multas, asignaciones, incapacidades y vencimientos de carnets.
 
-- Reglas de negocio:
-  - Si faltan fechas en eventos históricos, usar `created_at` como fallback para ordenamiento.
+   ---
 
----
+   ## 📅 Módulo: Reservas
 
-## 👥 Módulo: Conductores
+   HU-R1: Crear reserva y validar disponibilidad
+   - Templates: `reservations/form.html`, `reservations/list.html`, `reservations/detail.html`, `reservations/conflict.html`.
+   - Validaciones:
+     - `start < end`; vehículo no reservado/ocupado en el rango; CSRF.
+     - Si conflicto, página `reservations/conflict.html` muestra conflictos y alternativas.
 
-### HU-20: Registrar conductor
-- Rol: Administrador / RRHH
-- Objetivo: Añadir datos del conductor y permisos (carnet, categorías, fechas de vencimiento).
-- Criterios de aceptación:
-  - AC1: Formulario con: nombre, apellidos, NIF, email, teléfono, tipo (funcionario, eventual, externo), carnets (lista con tipo y fecha de vencimiento), organismo asignado.
-  - AC2: Si carnet vencido, el conductor aparece con estado `no_autorizado` hasta renovación.
+   HU-R2: Aprobación / Rechazo
+   - PATCH `/api/reservations/{id}` cambia estado y notifica solicitante (email/internal notification). En approving crea asignación temporal y bloquea vehículo.
 
-- Reglas:
-  - Validar NIF/ NIE formato; enviar aviso 30 días antes de vencimiento.
+   HU-R3: Políticas de aprobación avanzada
+   - Reglas: doble aprobación si duración o kilometraje excede umbral; reglas por unidad organizativa.
 
-### HU-21: Asignación y liberación de conductor a vehículo
-- Rol: Responsable de asignaciones
-- Objetivo: Asignar conductor a vehículo por rango de fechas y kilometraje previsto.
-- Criterios de aceptación:
-  - AC1: POST `/api/assignments` con { vehicle_id, driver_id, start_date, end_date, notes } crea asignación si no existe solapamiento.
-  - AC2: Si existe solapamiento de asignaciones para el mismo vehículo, devolver 409 con detalles del conflicto.
+   ---
 
----
+   ## 🔧 Módulo: Mantenimiento y pickups
 
-## 📅 Módulo: Reservas
+   HU-M1: Registrar intervención (Mantenimiento)
+   - Controller: `maintenance_controller.py`; templates `maintenance/form.html`, `maintenance/list.html`, `maintenance/detail.html`.
+   - Campos: tipo, descripción, fecha, mileage, cost, provider_id, piezas usadas (lista).
+   - Reglas: si `cost > threshold` crear alerta a finanzas.
 
-### HU-30: Solicitar reserva
-- Rol: Empleado
-- Objetivo: Solicitar un vehículo indicando rango horario, destino y justificación.
-- Criterios de aceptación:
-  - AC1: Formulario valida que `start < end`, que el vehículo está disponible en ese rango y que el request contiene CSRF.
-  - AC2: Guardar la solicitud en estado `pending` y notificar por email al supervisor.
+   HU-M2: Pickups y entregas
+   - Controller: `pickup_controller.py`; templates `pickups/list.html`, `pickups/detail.html`.
+   - AC: registrar recogida y entrega de vehículo con firma/usuario responsable y kilometraje.
 
-- Flujo UI / Backend:
-  1. GET `/reservations/new` muestra formulario con calendario y selección de vehículo/alternativas.
- 2. POST `/reservations` crea reserva en estado `pending`.
- 3. Supervisor recibe notificación y puede aprobar/rechazar en `/reservations/{id}/review`.
+   ---
 
-- Reglas de negocio:
-  - Políticas de aprobación según unidad organizativa y tipo de viaje.
-  - Si la solicitud excede umbral de kilometraje o duración, requiere doble aprobación.
+   ## ⚖️ Módulo: Cumplimiento (ITV, Seguros, Impuestos, Multas, Autorizaciones)
 
-### HU-31: Aprobar / Rechazar reserva (Supervisor)
-- Rol: Supervisor
-- Objetivo: Revisar y decidir sobre solicitudes de reserva.
-- Criterios de aceptación:
-  - AC1: PATCH `/api/reservations/{id}` con { status: approved|rejected, comments } cambia estado y notifica solicitante.
-  - AC2: En caso de approving, bloquear vehículo en el rango y crear asignación temporal.
+   HU-C1: ITV y seguros
+   - Controllers: `compliance_controller.py`; templates en `app/templates/compliance/itv*.html`, `insurance_*.html`.
+   - AC: crear/listar ITV e insurances con documentos adjuntos (file uploads) y alertas programadas antes de vencimiento.
 
----
+   HU-C2: Impuestos
+   - Templates: `compliance/taxes.html`, `tax_form.html`, `tax_detail.html`.
+   - AC: registrar pagos, visualizar estado `paid|pending|overdue` y exportar histórico.
 
-## 🔧 Módulo: Mantenimiento
+   HU-C3: Multas
+   - Templates: `compliance/fines.html`, `fine_form.html`, `fine_detail.html`.
+   - AC: crear multa, permitir asignación a `driver_id` o `vehicle_id`, marcar estado `open|paid|contested` y registrar recursos.
 
-### HU-40: Registrar intervención de mantenimiento
-- Rol: Técnico de mantenimiento
-- Objetivo: Registrar trabajos preventivos y correctivos con coste, kilometraje y piezas utilizadas.
-- Criterios de aceptación:
-  - AC1: POST `/api/maintenance` con { vehicle_id, type, description, performed_at, mileage, cost, provider_id } crea registro y actualiza historial del vehículo.
-  - AC2: Si coste > umbral, generar alerta a finanzas.
+   HU-C4: Autorizaciones especiales
+   - Templates: `compliance/authorizations.html`, `authorization_form.html`, `authorization_detail.html`.
+   - AC: crear autorización con metadatos de zona, alcance y fechas; búsqueda por zona.
 
-- Reglas:
-  - Programaciones periódicas basadas en kilometraje o tiempo; sistema genera tareas programadas.
+   ---
 
----
+   ## 🏢 Módulo: Organizaciones y árbol
 
-## ⚖️ Módulo: Cumplimiento Normativo (ITV, seguros, impuestos, multas, autorizaciones)
+   HU-O1: CRUD Unidades organizativas y árbol
+   - Templates: `organizations/form_with_tree.html`, `organizations/tree.html`, `organizations/list.html`.
+   - AC: CRUD completo, arrastrar/ordenar en la UI (si aplica), export JSON del árbol para integraciones.
 
-### HU-50: Registrar ITV y alertas de vencimiento
-- Rol: Responsable de cumplimiento
-- Objetivo: Mantener registros de inspecciones técnicas con fechas de vencimiento y generar alertas.
-- Criterios de aceptación:
-  - AC1: Cada `VehicleItv { vehicle_id, date, expiry_date, station, document_url }` puede ser creado y listado.
-  - AC2: El sistema envía notificaciones configurables (email/ dashboard ) X días antes del vencimiento.
+   HU-O2: Permisos basados en unidad
+   - Reglas: herencia de permisos, alcance de supervisores y responsables por unidad.
 
-### HU-51: Registrar pago de impuestos y controlar estado
-- Rol: Administrador financiero
-- Objetivo: Registrar impuestos pagados y su estado.
-- Criterios de aceptación:
-  - AC1: POST `/api/taxes` crea registro con { vehicle_id, period, amount, payment_status }
-  - AC2: Visualización en `/vehicles/{id}/compliance` con estado `paid|pending|overdue`.
+   ---
 
-### HU-52: Gestión de multas
-- Rol: Coordinador de flota
-- Objetivo: Registrar multas, asignarlas a conductor o vehículo, y llevar seguimiento de pago/ recurso.
-- Criterios de aceptación:
-  - AC1: POST `/api/fines` con { vehicle_id, driver_id?, date, amount, fine_type, status }
-  - AC2: Si asignada a conductor, marcar impacto en su perfil (estadísticas, historial).
+   ## 🧾 Módulo: Proveedores
 
-### HU-53: Autorizaciones de acceso especial (zonas restringidas)
-- Rol: Responsable de cumplimiento
-- Objetivo: Gestionar autorizaciones temporales o permanentes con metadatos (zona, alcance, fecha fin).
-- Criterios de aceptación:
-  - AC1: Crear autorización con { vehicle_id, authorization_type, zone, start_date, end_date, issuing_authority }
-  - AC2: Mostrar autorización en ficha de vehículo y permitir búsqueda por zona/vehículo.
+   HU-P1: CRUD proveedores
+   - Templates: `providers/form.html`, `providers/list.html`, `providers/detail.html`.
+   - AC: registrar proveedor con datos de contacto, servicios ofrecidos y contratos.
 
----
+   ---
 
-## 🏢 Módulo: Organizaciones
+   ## 🚚 Módulo: Transferencias y cesiones
 
-### HU-60: Crear y estructurar unidades organizativas
-- Rol: Administrador
-- Objetivo: Definir jerarquía de unidades (organigrama) y asociar vehículos/usuarios.
-- Criterios de aceptación:
-  - AC1: UI para CRUD de unidades con padre/opciones y ordenamiento jerárquico.
-  - AC2: Exportar árbol en JSON para apps externas.
+   HU-T1: Cesiones / Transferencias entre unidades o usuarios
+   - Templates: `assignments/cesion_form.html`, `assignments/cesion_detail.html`, `assignments/cesiones.html`.
+   - AC: registrar cesión con fechas, motivos, vehículo y responsable; actualizar estado del vehículo y su ubicación administrativa.
 
----
+   ---
 
-## 📊 Módulo: Dashboard y Reportes
+   ## 📁 Módulo: Archivos, uploads y documentos
 
-### HU-70: Dashboard operativo
-- Rol: Administrador / Supervisor
-- Objetivo: Ver métricas clave (vehículos disponibles, reservas pendientes, vencimientos próximos, coste de mantenimiento)
-- Criterios de aceptación:
-  - AC1: Panel con widgets actualizables y enlaces a filtros preaplicados.
-  - AC2: Exportar reportes CSV/PDF con filtros por fecha y unidad.
+   HU-F1: Subir documentos asociados a vehículo/itv/insurance/tax
+   - Reglas: validar tipo (pdf,jpg,png), tamaño máximo, almacenar en `static/uploads` y registrar metadata en DB (who/when/path).
 
----
+   HU-F2: Descargas seguras
+   - El endpoint de descarga debe verificar permisos y servir con headers correctos; no exponer paths absolutos.
 
-## Reglas generales y consideraciones transversales
-- Autorizaciones y permisos evaluados por middleware en cada endpoint.
+   ---
+
+   ## 📊 Módulo: Dashboard, Reportes y Export
+
+   HU-DASH1: Dashboard operativo
+   - Templates: `dashboard.html` y `compliance/dashboard.html`.
+   - AC: widgets con métricas (véase HU-70 original), filtros por periodo y unidad, enlaces a listados filtrados.
+
+   HU-DASH2: Exportes
+   - CSV/PDF para listados (vehicles, reservations, maintenance, fines) con parámetros de filtrado.
+
+   ---
+
+   ## 🧪 Observabilidad, errores y límites
+
+   HU-S1: Manejo de errores y páginas de status
+   - Templates: `errors/400.html`, `errors/403.html`, `errors/404.html`, `errors/429.html`, `errors/500.html` deben mostrarse apropiadamente.
+
+   HU-S2: Rate limiting y seguridad
+   - Reglas: endpoints sensibles (auth, file upload) deben aplicar limitación y validación estricta.
+
+   HU-S3: Auditoría
+   - Todas las operaciones CRUD importantes deben registrar `who, when, what`.
+
+   ---
+
+   ## Reglas transversales y validaciones
+   - CSRF obligatorio en formularios.
+   - Validación de entradas tanto en frontend como en backend (servidor autoridad).
+   - Internacionalización (i18n) en strings; plantillas deben poder recibir traducciones.
+   - Paginación y filtros en endpoints listados.
+   - Manejo de concurrencia en reservas/asignaciones para evitar solapamientos (bloqueos optimistas o checks transaccionales).
+
+   ---
+
+   ## Entregables por historia
+   - Cada HU deberá entregarse con:
+     1. Escenarios Given/When/Then en `tests/` o archivos BDD.
+     2. Tests pytest (happy path + 1–2 casos borde): validaciones, conflictos y permisos.
+     3. Mock o contrato API (OpenAPI/Swagger fragment mínimo).
+
+   ---
+
+   Si quieres, procedo a cualquiera de las siguientes acciones (elige una o varias):
+
+   1) Generar los escenarios Given/When/Then para todas las historias nuevas (puedo crear archivos `.feature` o tests pytest en `tests/`).
+   2) Crear plantillas de tests pytest (un test por historia: happy path + 1 caso borde) y ubicarlas en `tests/`.
+   3) Extraer un backlog priorizado (MVP / v1 / v2) con estimaciones rápidas.
+   4) Añadir casos concretos que quieras garantizar (por ejemplo: excluir `gestion_vehiculos.db` y `security.log` de los backups/archives).
+
+   Dime qué prefieres y lo hago: (a) generar BDD, (b) crear tests pytest, (c) priorizar backlog, (d) otra cosa.
 - Internacionalización (i18n): textos parametrizables para múltiples idiomas.
-- Seguridad: todas las modificaciones importantes deben auditarse (who/when/what).
-- Validaciones: tanto cliente como servidor; servidor es la autoridad.
-
-## Plantillas de aceptación para desarrollo y testing
-- Cada historia deberá entregarse con:
-  1. Escenario/s de aceptación (Given/When/Then) en `tests/` o archivo BDD.
-  2. Mock de API minimal para integración frontend.
-  3. Documentación de endpoints y muestras de request/response.
-
----
-
-Si quieres, puedo:
-- Generar los escenarios Given/When/Then para cada historia principal.
-- Crear plantillas de tests pytest (happy path + 1 caso borde) por historia.
-- Extraer de aquí un backlog priorizado (MVP, v1, v2) y estimaciones de esfuerzo.
-
-```

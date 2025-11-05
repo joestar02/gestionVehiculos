@@ -20,10 +20,10 @@
                     <div class="card login-card shadow-sm">
                         <div class="login-header text-center p-4">
                             <div class="login-logo mb-2">
-                                <i class="bi bi-truck display-4 text-primary"></i>
+                                <img src="{{ url_for('static', filename='img/jda_logo.svg') }}" alt="Junta de Andalucía" height="56">
                             </div>
                             <h2 class="mb-1">Sistema de Gestión de Flota</h2>
-                            <p class="mb-0 text-muted">Gestión Corporativa</p>
+                            <p class="mb-0 muted-small">Gestión Corporativa</p>
                         </div>
 
                         <div class="card-body p-4 p-md-5">
@@ -39,7 +39,7 @@
                                 {% endif %}
                             {% endwith %}
                             
-                            <h4 class="text-center mb-4 text-primary">Acceso al Sistema</h4>
+                            <h4 class="text-center mb-4 text-junta-verde">Acceso al Sistema</h4>
                             
                             <form method="POST" action="{{ url_for('auth.login') }}">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>

@@ -4,7 +4,15 @@
 
 {% block content %}
 <div class="container mt-4">
-  <h1>{{ provider.name }}</h1>
+  {% from '_includes/macros.html' import page_header %}
+  {% call page_header(provider.name, '<i class="bi bi-building"></i>') %}
+      <a class="btn btn-primary" href="{{ url_for('providers.edit_provider', provider_id=provider.id) }}">Editar</a>
+      <form method="post" action="{{ url_for('providers.delete_provider', provider_id=provider.id) }}" style="display:inline-block;" onsubmit="return confirm('¿Eliminar proveedor?');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button class="btn btn-danger">Eliminar</button>
+      </form>
+      <a class="btn btn-secondary" href="{{ url_for('providers.list_providers') }}">Volver</a>
+  {% endcall %}
   <p class="text-muted">Tipo: {{ provider.provider_type_display }}</p>
 
   <div class="row">

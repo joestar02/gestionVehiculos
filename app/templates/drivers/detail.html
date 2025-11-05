@@ -5,7 +5,12 @@
 {% block content %}
 <div class="row mb-4">
     <div class="col-md-6">
-        <h1><i class="bi bi-person-badge"></i> {{ driver.full_name }}</h1>
+{% from '_includes/macros.html' import page_header %}
+{% call page_header(driver.full_name, '<i class="bi bi-person-badge"></i>') %}
+            <a href="{{ url_for('drivers.edit_driver', driver_id=driver.id) }}" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Editar
+            </a>
+{% endcall %}
         <p class="text-muted">{{ driver.document_type }}: {{ driver.document_number }}</p>
     </div>
     <div class="col-md-6 text-end">

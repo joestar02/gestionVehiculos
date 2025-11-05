@@ -1,0 +1,81 @@
+Resumen de tablas y relaciones (extraído de app/models)
+
+Tables and key FKs:
+
+- users
+  - id (PK)
+  - used by: reservations.user_id, vehicle_assignments.created_by, maintenance_records.created_by, fines.created_by, vehicle_driver_associations.created_by
+
+- organization_units
+  - id (PK)
+  - parent_id -> organization_units.id (self-relation)
+  - used by: vehicles.organization_unit_id, drivers.organization_unit_id, reservations.organization_unit_id, vehicle_assignments.organization_unit_id
+
+- vehicles
+  - id (PK)
+  - organization_unit_id -> organization_units.id
+  - relations: renting_contracts.vehicle_id, reservations.vehicle_id, maintenance_records.vehicle_id, itv_records.vehicle_id, accidents.vehicle_id, vehicle_taxes.vehicle_id, vehicle_insurances.vehicle_id, fines.vehicle_id, urban_access_authorizations.vehicle_id, vehicle_driver_associations.vehicle_id, vehicle_assignments.vehicle_id, vehicle_pickups.vehicle_id
+
+- drivers
+  - id (PK)
+  - organization_unit_id -> organization_units.id
+  - relations: vehicle_driver_associations.driver_id, vehicle_assignments.driver_id, reservations.driver_id, vehicle_pickups.driver_id, accidents.driver_id, fines.driver_id
+
+- vehicle_driver_associations
+  - vehicle_id -> vehicles.id
+  - driver_id -> drivers.id
+  - created_by -> users.id
+
+- vehicle_assignments
+  - vehicle_id -> vehicles.id
+  - driver_id -> drivers.id
+  - organization_unit_id -> organization_units.id
+  - created_by -> users.id
+
+- reservations
+  - vehicle_id -> vehicles.id
+  - driver_id -> drivers.id
+  - user_id -> users.id
+  - organization_unit_id -> organization_units.id
+  - one-to-one: vehicle_pickups.reservation_id (unique)
+
+- vehicle_pickups
+  - reservation_id -> reservations.id (unique)
+  - driver_id -> drivers.id
+  - vehicle_id -> vehicles.id
+
+- renting_contracts
+  - vehicle_id -> vehicles.id
+
+- maintenance_records
+  - vehicle_id -> vehicles.id
+  - provider_id -> providers.id
+  - created_by -> users.id
+
+- providers
+  - id (PK)
+  - used by: maintenance_records.provider_id
+
+- itv_records
+  - vehicle_id -> vehicles.id
+
+- vehicle_taxes
+  - vehicle_id -> vehicles.id
+
+- vehicle_insurances
+  - vehicle_id -> vehicles.id
+
+- fines
+  - vehicle_id -> vehicles.id
+  - driver_id -> drivers.id
+  - created_by -> users.id
+
+- urban_access_authorizations
+  - vehicle_id -> vehicles.id
+
+- accidents
+  - vehicle_id -> vehicles.id
+  - driver_id -> drivers.id
+  - created_by -> users.id
+
+-- Fin del resumen --

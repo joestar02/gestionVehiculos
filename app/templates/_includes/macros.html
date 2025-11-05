@@ -1,0 +1,14 @@
+{% macro page_header(title, icon=None, subtitle=None) -%}
+<div class="page-header d-flex align-items-center justify-content-between mb-4">
+  <div class="d-flex align-items-center">
+    {% if icon %}<span class="me-2">{{ icon|safe }}</span>{% endif %}
+    <div>
+      <h1 class="page-title mb-0">{{ title }}</h1>
+      {% if subtitle %}<div class="muted-small">{{ subtitle }}</div>{% endif %}
+    </div>
+  </div>
+  <div class="page-actions">
+    {{ caller() }}
+  </div>
+</div>
+{%- endmacro %}

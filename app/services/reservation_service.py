@@ -11,6 +11,11 @@ class ReservationService:
     def get_all_reservations() -> List[Reservation]:
         """Get all reservations"""
         return Reservation.query.order_by(Reservation.start_date.desc()).all()
+
+    @staticmethod
+    def get_all_reservations_paginated(page: int = 1, per_page: int = 20):
+        """Get all reservations with pagination"""
+        return Reservation.query.order_by(Reservation.start_date.desc()).paginate(page=page, per_page=per_page, error_out=False)
     
     @staticmethod
     def get_reservation_by_id(reservation_id: int) -> Optional[Reservation]:
@@ -30,6 +35,11 @@ class ReservationService:
         return Reservation.query.filter_by(driver_id=driver_id).order_by(
             Reservation.start_date.desc()
         ).all()
+
+    @staticmethod
+    def get_reservations_by_driver_paginated(driver_id: int, page: int = 1, per_page: int = 20):
+        """Get reservations for a specific driver with pagination"""
+        return Reservation.query.filter_by(driver_id=driver_id).order_by(Reservation.start_date.desc()).paginate(page=page, per_page=per_page, error_out=False)
     
     @staticmethod
     def get_reservations_by_driver_and_date_range(driver_id: int, start_date, end_date) -> List[Reservation]:
@@ -39,6 +49,15 @@ class ReservationService:
             Reservation.start_date >= start_date,
             Reservation.start_date <= end_date
         ).order_by(Reservation.start_date).all()
+
+    @staticmethod
+    def get_reservations_by_driver_and_date_range_paginated(driver_id: int, start_date, end_date, page: int = 1, per_page: int = 20):
+        """Get reservations for a specific driver within date range with pagination"""
+        return Reservation.query.filter(
+            Reservation.driver_id == driver_id,
+            Reservation.start_date >= start_date,
+            Reservation.start_date <= end_date
+        ).order_by(Reservation.start_date).paginate(page=page, per_page=per_page, error_out=False)
     
     @staticmethod
     def get_reservations_by_date_range(start_date, end_date) -> List[Reservation]:
@@ -47,6 +66,14 @@ class ReservationService:
             Reservation.start_date >= start_date,
             Reservation.start_date <= end_date
         ).order_by(Reservation.start_date).all()
+
+    @staticmethod
+    def get_reservations_by_date_range_paginated(start_date, end_date, page: int = 1, per_page: int = 20):
+        """Get reservations within a date range with pagination"""
+        return Reservation.query.filter(
+            Reservation.start_date >= start_date,
+            Reservation.start_date <= end_date
+        ).order_by(Reservation.start_date).paginate(page=page, per_page=per_page, error_out=False)
 
     @staticmethod
     def _check_vehicle_overlap(vehicle_id: int, start_date, end_date, exclude_reservation_id: int = None):

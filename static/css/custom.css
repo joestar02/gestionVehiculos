@@ -1,0 +1,139 @@
+/* Custom theme inspired by the Junta de Andalucía identity
+   - Variables for main colors
+   - Header / footer styles
+   - Utility classes used across templates
+*/
+:root{
+    --jda-green: #007a3d; /* principal */
+    --jda-green-dark: #005a2b;
+    --jda-gray: #6c757d;
+    --jda-bg: #ffffff;
+    --jda-accent: #f2f7f3;
+    --body-font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+body{font-family:var(--body-font);background:var(--jda-accent);color:#222}
+
+/* Navbar */
+.navbar-junta{position:relative;background:var(--jda-bg);border-bottom:0;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
+.jda-topbar{background:var(--jda-green);height:40px}
+.jda-topbar .topbar-brand{display:flex;align-items:center}
+.jda-topbar img{display:block}
+.navbar-junta .navbar-brand{display:flex;align-items:center;color:var(--jda-green-dark);text-decoration:none;padding-top:8px}
+.navbar-junta .brand-text .app-title{font-weight:600;font-size:1.05rem;color:#0b2b22}
+.navbar-junta .brand-text .app-sub{font-size:.76rem;color:var(--jda-gray);opacity:.95}
+.navbar-junta .nav-link{color:#495057;padding:.5rem .75rem}
+.navbar-junta .nav-link.active, .navbar-junta .nav-link:hover{color:var(--jda-green-dark);background:transparent}
+
+/* Utilities */
+.text-junta-verde{color:var(--jda-green) !important}
+.btn-junta{background:var(--jda-green);border-color:var(--jda-green);color:#fff}
+.btn-junta:hover{background:var(--jda-green-dark);border-color:var(--jda-green-dark)}
+
+/* Content wrapper */
+.content-wrapper{padding:28px 0}
+.container{max-width:1100px}
+
+/* Footer */
+.footer-junta{background:transparent;padding:22px 0;border-top:1px solid #e9ecef;margin-top:30px}
+.footer-junta small{color:var(--jda-gray)}
+
+/* Alerts and cards */
+.card.login-card{border-radius:6px}
+.login-header .login-logo .bi{font-size:48px}
+
+/* Responsive tweaks */
+@media (max-width:768px){
+    .navbar-junta .app-title{font-size:0.98rem}
+}
+
+/* Tables and lists (small improvements) */
+table.table thead th{background:transparent;border-bottom:2px solid #eef}
+
+/* Form inputs: subtle focus */
+.form-control:focus{box-shadow:0 0 0 0.15rem rgba(0,122,61,0.12);border-color:var(--jda-green)}
+
+/* Small helpers used in templates */
+.muted-small{font-size:.85rem;color:var(--jda-gray)}
+
+/* Global overrides so existing templates (that use Bootstrap classes) adopt JdA identity */
+.btn-primary{background:var(--jda-green) !important;border-color:var(--jda-green) !important;color:#fff}
+.btn-primary:hover,.btn-primary:focus{background:var(--jda-green-dark) !important;border-color:var(--jda-green-dark) !important}
+.btn-primary:active{background:var(--jda-green-dark) !important}
+
+/* Make primary outline use JdA green */
+.btn-outline-primary{color:var(--jda-green);border-color:var(--jda-green)}
+.btn-outline-primary:hover{background:rgba(0,122,61,0.06)}
+
+/* Tables styling */
+.table{background:var(--jda-bg)}
+.table thead th{border-bottom:2px solid rgba(0,0,0,0.06);color:#122}
+.table-hover tbody tr:hover{background:rgba(0,122,61,0.03)}
+
+/* Cards */
+.card{border:1px solid #e9ecef;border-radius:8px}
+.card .card-body{padding:1.25rem}
+.card-header{background:transparent;border-bottom:1px solid #f1f1f1}
+
+/* Headings */
+h1, .display-5, .display-4{color:#0b2b22;font-weight:600}
+h2,h3{color:#0b2b22}
+
+/* Forms and inputs */
+.form-label{font-weight:600}
+
+/* Dropdowns and navs */
+.navbar-junta .dropdown-menu{min-width:200px;border-radius:6px;box-shadow:0 6px 18px rgba(22,28,36,0.08)}
+.navbar-junta .dropdown-item{color:#212529}
+.navbar-junta .dropdown-item:hover{background:rgba(0,122,61,0.04);color:var(--jda-green-dark)}
+
+/* Make links using primary color */
+a{color:var(--jda-green)}
+a:hover{color:var(--jda-green-dark)}
+
+/* Mobile: make navbar links more prominent */
+@media (max-width: 991px){
+    .jda-topbar{height:48px}
+    .navbar-junta .nav-link{padding:.75rem 1rem}
+}
+
+/* Refined menu styling to match Junta de Andalucía reference */
+.navbar-junta .navbar-brand .app-title{font-size:1rem;font-weight:700;color:#0b2b22}
+.navbar-junta .navbar-brand img{height:40px}
+.navbar-junta .nav{align-items:center}
+.navbar-junta .nav-item{margin-left:.25rem}
+.navbar-junta .nav-link{font-weight:600;text-transform:uppercase;font-size:.93rem;letter-spacing:.02em;color:#495057;padding:.6rem .9rem}
+.navbar-junta .nav-link svg, .navbar-junta .nav-link i{margin-right:.45rem;font-size:1.03rem}
+.navbar-junta .nav-link:hover{background:transparent}
+
+/* Active indicator: thin green bar under active item */
+.navbar-junta .nav-link{position:relative}
+.navbar-junta .nav-link.active::after{content:'';position:absolute;left:10%;right:10%;bottom:-6px;height:3px;background:var(--jda-green);border-radius:2px}
+
+/* Toggler styles */
+.navbar-toggler{border-color:rgba(0,0,0,0.08)}
+.navbar-toggler-icon{background-image:none}
+.navbar-toggler .bi-list{font-size:1.25rem;color:var(--jda-green-dark)}
+
+/* Dropdown caret color */
+.navbar-junta .dropdown-toggle::after{margin-left:.35rem;color:var(--jda-green-dark)}
+
+/* Make dropdown menus slightly more compact and aligned */
+.navbar-junta .dropdown-menu{padding:.35rem}
+.navbar-junta .dropdown-item{padding:.5rem .9rem}
+
+/* Ensure the user dropdown (right) is visually separated */
+.navbar-junta .navbar-nav:last-child{margin-left:1rem}
+
+/* Small screens: make topbar visible if preferred, keep nav compact */
+@media (max-width: 768px){
+    .jda-topbar{display:flex}
+    .navbar-junta .nav-link{font-size:.95rem;padding:.6rem .8rem}
+    .navbar-junta .navbar-brand img{height:34px}
+}
+
+/* Accessibility: focus style for keyboard navigation */
+.navbar-junta .nav-link:focus{outline:3px solid rgba(0,122,61,0.12);outline-offset:2px}
+
