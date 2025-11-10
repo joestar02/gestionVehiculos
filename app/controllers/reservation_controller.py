@@ -9,6 +9,7 @@ from app.models.reservation import ReservationStatus
 from app.models.user import UserRole
 from app.utils.error_helpers import log_exception
 from app.services.reservation_service import ReservationService as RService
+from urllib.parse import urlencode
 
 reservation_bp = Blueprint('reservations', __name__)
 
@@ -43,6 +44,9 @@ def list_reservations():
 
     # preserved query params (all except page) to keep filters when navigating pages
     preserved_args = {k: v for k, v in request.args.items() if k != 'page'}
+    # Build a base URL and a preserved querystring for safe use in templates
+    base_list_url = url_for('reservations.list_reservations')
+    preserved_qs = urlencode(preserved_args) if preserved_args else ''
 
     if current_user.role == UserRole.DRIVER:
         # Drivers can only see their own reservations
@@ -63,7 +67,7 @@ def list_reservations():
 
     # pagination is a Pagination object from Flask-SQLAlchemy
     reservations = pagination.items if hasattr(pagination, 'items') else []
-    return render_template('reservations/list.html', reservations=reservations, pagination=pagination, preserved_args=preserved_args)
+    return render_template('reservations/list.html', reservations=reservations, pagination=pagination, preserved_args=preserved_args, base_list_url=base_list_url, preserved_qs=preserved_qs)
 
 @reservation_bp.route('/<int:reservation_id>')
 @login_required

@@ -4,6 +4,8 @@ from flask_login import login_required, current_user
 from app.services.vehicle_service import VehicleService
 from app.models.vehicle import VehicleType, OwnershipType, VehicleStatus
 from app.utils.error_helpers import log_exception
+from urllib.parse import urlencode
+from app.utils.pagination import paginate_list
 
 vehicle_bp = Blueprint('vehicles', __name__)
 
@@ -11,8 +13,23 @@ vehicle_bp = Blueprint('vehicles', __name__)
 @login_required
 def list_vehicles():
     """List all vehicles"""
-    vehicles = VehicleService.get_all_vehicles()
-    return render_template('vehicles/list.html', vehicles=vehicles)
+    # pagination params
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+    try:
+        per_page = int(request.args.get('per_page', 20))
+    except ValueError:
+        per_page = 20
+
+    preserved_args = {k: v for k, v in request.args.items() if k != 'page'}
+    base_list_url = url_for('vehicles.list_vehicles')
+    preserved_qs = urlencode(preserved_args) if preserved_args else ''
+
+    all_vehicles = VehicleService.get_all_vehicles()
+    vehicles, pagination = paginate_list(all_vehicles, page=page, per_page=per_page)
+    return render_template('vehicles/list.html', vehicles=vehicles, pagination=pagination, base_list_url=base_list_url, preserved_qs=preserved_qs)
 
 @vehicle_bp.route('/<int:vehicle_id>')
 @login_required
@@ -145,5 +162,20 @@ def search_vehicles():
         vehicles = VehicleService.search_vehicles(search_term)
     else:
         vehicles = VehicleService.get_all_vehicles()
-    
-    return render_template('vehicles/list.html', vehicles=vehicles, search_term=search_term)
+
+    # reuse pagination for search results as well
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+    try:
+        per_page = int(request.args.get('per_page', 20))
+    except ValueError:
+        per_page = 20
+
+    preserved_args = {k: v for k, v in request.args.items() if k != 'page'}
+    base_list_url = url_for('vehicles.search_vehicles')
+    preserved_qs = urlencode(preserved_args) if preserved_args else ''
+
+    vehicles_page, pagination = paginate_list(vehicles, page=page, per_page=per_page)
+    return render_template('vehicles/list.html', vehicles=vehicles_page, search_term=search_term, pagination=pagination, base_list_url=base_list_url, preserved_qs=preserved_qs)

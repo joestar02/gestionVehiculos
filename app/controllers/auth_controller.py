@@ -2,6 +2,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from flask_limiter.util import get_remote_address
+from flask import current_app
 from app.services.auth_service import AuthService
 from app.services.security_audit_service import SecurityAudit
 from app.services.input_validation_service import InputValidator
@@ -20,6 +21,10 @@ def login():
     """Login page and handler"""
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
+
+    # Determine availability of optional endpoints to avoid template errors
+    has_forgot_password = 'auth.forgot_password' in current_app.view_functions
+    has_register = 'auth.register' in current_app.view_functions
 
     if request.method == 'POST':
         # Validate CSRF token
@@ -41,7 +46,7 @@ def login():
                 ip_address
             )
             flash('Por favor ingresa usuario y contraseña', 'error')
-            return render_template('auth/login.html')
+            return render_template('auth/login.html', has_forgot_password=has_forgot_password, has_register=has_register)
 
         # Additional validation
         if len(username) < 3:
@@ -51,7 +56,7 @@ def login():
                 ip_address
             )
             flash('Nombre de usuario no válido', 'error')
-            return render_template('auth/login.html')
+            return render_template('auth/login.html', has_forgot_password=has_forgot_password, has_register=has_register)
 
         user = AuthService.authenticate_user(username, password)
 
@@ -95,7 +100,7 @@ def login():
             # Generic error message to prevent user enumeration
             flash('Credenciales incorrectas. Verifica tu usuario y contraseña.', 'error')
 
-    return render_template('auth/login.html')
+    return render_template('auth/login.html', has_forgot_password=has_forgot_password, has_register=has_register)
 
 @auth_bp.route('/logout')
 @login_required

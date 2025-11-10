@@ -9,6 +9,8 @@ from app.services.reservation_service import ReservationService
 from app.models.driver import DriverType, DriverStatus
 from app.models.user import UserRole
 from app.utils.error_helpers import log_exception
+from urllib.parse import urlencode
+from app.utils.pagination import paginate_list
 
 driver_bp = Blueprint('drivers', __name__)
 
@@ -16,8 +18,22 @@ driver_bp = Blueprint('drivers', __name__)
 @login_required
 def list_drivers():
     """List all drivers"""
-    drivers = DriverService.get_all_drivers()
-    return render_template('drivers/list.html', drivers=drivers)
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+    try:
+        per_page = int(request.args.get('per_page', 20))
+    except ValueError:
+        per_page = 20
+
+    preserved_args = {k: v for k, v in request.args.items() if k != 'page'}
+    base_list_url = url_for('drivers.list_drivers')
+    preserved_qs = urlencode(preserved_args) if preserved_args else ''
+
+    all_drivers = DriverService.get_all_drivers()
+    drivers, pagination = paginate_list(all_drivers, page=page, per_page=per_page)
+    return render_template('drivers/list.html', drivers=drivers, pagination=pagination, base_list_url=base_list_url, preserved_qs=preserved_qs)
 
 @driver_bp.route('/<int:driver_id>')
 @login_required
@@ -144,8 +160,22 @@ def search_drivers():
         drivers = DriverService.search_drivers(search_term)
     else:
         drivers = DriverService.get_all_drivers()
-    
-    return render_template('drivers/list.html', drivers=drivers, search_term=search_term)
+
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+    try:
+        per_page = int(request.args.get('per_page', 20))
+    except ValueError:
+        per_page = 20
+
+    preserved_args = {k: v for k, v in request.args.items() if k != 'page'}
+    base_list_url = url_for('drivers.search_drivers')
+    preserved_qs = urlencode(preserved_args) if preserved_args else ''
+
+    drivers_page, pagination = paginate_list(drivers, page=page, per_page=per_page)
+    return render_template('drivers/list.html', drivers=drivers_page, search_term=search_term, pagination=pagination, base_list_url=base_list_url, preserved_qs=preserved_qs)
 
 # Driver-specific routes for logged-in drivers
 @driver_bp.route('/dashboard')

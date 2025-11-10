@@ -18,15 +18,9 @@
             <div class="row justify-content-center">
                 <div class="col-md-10 col-lg-8">
                     <div class="card login-card shadow-sm">
-                        <div class="login-header text-center p-4">
-                            <div class="login-logo mb-2">
-                                <img src="{{ url_for('static', filename='img/jda_logo.svg') }}" alt="Junta de Andalucía" height="56">
-                            </div>
-                            <h2 class="mb-1">Sistema de Gestión de Flota</h2>
-                            <p class="mb-0 muted-small">Gestión Corporativa</p>
-                        </div>
-
-                        <div class="card-body p-4 p-md-5">
+                        <div class="row g-0">
+                            <div class="col-md-12 d-none d-md-block">
+                                <div class="card-body p-4 p-md-5">
                             <!-- Flash Messages -->
                             {% with messages = get_flashed_messages(with_categories=true) %}
                                 {% if messages %}
@@ -72,9 +66,9 @@
                                     </label>
                                 </div>
                                 
-                                <div class="d-grid mb-4">
-                                    <button type="submit" class="btn btn-primary btn-lg">
-                                        <i class="bi bi-box-arrow-in-right me-2"></i> Acceder al Sistema
+                                <div class="d-grid mb-3">
+                                    <button type="submit" class="btn btn-junta btn-lg">
+                                        <i class="bi bi-box-arrow-in-right me-2"></i> Acceder
                                     </button>
                                 </div>
                             </form>
@@ -84,9 +78,11 @@
 
                         </div>
                         
+                            </div>
+                        </div>
                         <div class="card-footer bg-light text-center py-3">
                             <small class="text-muted">
-                                Sistema de Gestión de Flota v{{ app_version }}
+                                Sistema de Gestión de Flota 
                             </small>
                         </div>
                     </div>

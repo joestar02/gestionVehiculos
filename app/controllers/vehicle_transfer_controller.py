@@ -7,6 +7,8 @@ from app.services.vehicle_service import VehicleService
 from app.services.driver_service import DriverService
 from app.services.vehicle_transfer_service import VehicleTransferService
 from app.models.vehicle_assignment import VehicleAssignment, AssignmentType, PaymentStatus
+from urllib.parse import urlencode
+from app.utils.pagination import paginate_list
 from app.models.user import UserRole
 
 vehicle_transfer_bp = Blueprint('vehicle_transfers', __name__, url_prefix='/vehicle-transfers')
@@ -19,8 +21,22 @@ def list_transfers():
         flash('Acceso denegado.', 'error')
         return redirect(url_for('main.index'))
 
-    records = VehicleTransferService.get_all_transfers()
-    return render_template('vehicle_transfers/list.html', records=records)
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+    try:
+        per_page = int(request.args.get('per_page', 20))
+    except ValueError:
+        per_page = 20
+
+    preserved_args = {k: v for k, v in request.args.items() if k != 'page'}
+    base_list_url = url_for('vehicle_transfers.list_transfers')
+    preserved_qs = urlencode(preserved_args) if preserved_args else ''
+
+    all_records = VehicleTransferService.get_all_transfers()
+    records, pagination = paginate_list(all_records, page=page, per_page=per_page)
+    return render_template('vehicle_transfers/list.html', records=records, pagination=pagination, base_list_url=base_list_url, preserved_qs=preserved_qs)
 
 @vehicle_transfer_bp.route('/new', methods=['GET', 'POST'])
 @login_required

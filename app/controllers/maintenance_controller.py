@@ -7,6 +7,8 @@ from app.services.maintenance_service import MaintenanceService
 from app.services.vehicle_service import VehicleService
 from app.services.provider_service import ProviderService
 from app.models.maintenance import MaintenanceType, MaintenanceStatus
+from urllib.parse import urlencode
+from app.utils.pagination import paginate_list
 
 
 
@@ -16,8 +18,22 @@ maintenance_bp = Blueprint('maintenance', __name__)
 @login_required
 def list_maintenance():
     """List all maintenance records"""
-    records = MaintenanceService.get_all_maintenance_records()
-    return render_template('maintenance/list.html', records=records)
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+    try:
+        per_page = int(request.args.get('per_page', 20))
+    except ValueError:
+        per_page = 20
+
+    preserved_args = {k: v for k, v in request.args.items() if k != 'page'}
+    base_list_url = url_for('maintenance.list_maintenance')
+    preserved_qs = urlencode(preserved_args) if preserved_args else ''
+
+    all_records = MaintenanceService.get_all_maintenance_records()
+    records, pagination = paginate_list(all_records, page=page, per_page=per_page)
+    return render_template('maintenance/list.html', records=records, pagination=pagination, base_list_url=base_list_url, preserved_qs=preserved_qs)
 
 @maintenance_bp.route('/<int:record_id>')
 @login_required

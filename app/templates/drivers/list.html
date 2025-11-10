@@ -3,8 +3,8 @@
 {% block title %}Conductores - {{ app_name }}{% endblock %}
 
 {% block content %}
-{% from '_includes/macros.html' import page_header %}
-{% call page_header('Conductores', '<i class="bi bi-person-badge"></i>') %}
+{% from '_includes/macros.html' import page_header, pagination_controls %}
+{% call page_header('Conductores', '<h1><i class="bi bi-person-badge"></i></h1>') %}
     <a href="{{ url_for('drivers.create_driver') }}" class="btn btn-primary">
         <i class="bi bi-plus-circle"></i> Nuevo Conductor
     </a>
@@ -30,12 +30,8 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>Nombre</th>
-                        <th>Documento</th>
-                        <th>Licencia</th>
-                        <th>Vencimiento</th>
+                        <th>Nombre</th>                      
                         <th>Tipo</th>
-                        <th>Estado</th>
                         <th>Contacto</th>
                         <th>Acciones</th>
                     </tr>
@@ -45,31 +41,10 @@
                     <tr>
                         <td>
                             <strong>{{ driver.full_name }}</strong>
-                        </td>
-                        <td>{{ driver.document_type }}: {{ driver.document_number }}</td>
-                        <td>{{ driver.driver_license_number }}</td>
-                        <td>
-                            {% if driver.driver_license_expiry %}
-                                {{ driver.driver_license_expiry.strftime('%d/%m/%Y') }}
-                                {% if driver.driver_license_expiry < now %}
-                                    <span class="badge bg-danger">Vencida</span>
-                                {% endif %}
-                            {% else %}
-                                N/A
-                            {% endif %}
-                        </td>
+                        </td>                        
                         <td>
                             <span class="badge bg-info">{{ driver.driver_type.value }}</span>
-                        </td>
-                        <td>
-                            {% if driver.status.value == 'active' %}
-                                <span class="badge bg-success">Activo</span>
-                            {% elif driver.status.value == 'inactive' %}
-                                <span class="badge bg-secondary">Inactivo</span>
-                            {% else %}
-                                <span class="badge bg-warning">Suspendido</span>
-                            {% endif %}
-                        </td>
+                        </td>                       
                         <td>
                             {% if driver.phone %}
                                 <i class="bi bi-telephone"></i> {{ driver.phone }}<br>
@@ -93,6 +68,8 @@
                 </tbody>
             </table>
         </div>
+            {# Pagination controls (if provided by controller) #}
+            {% if pagination %}{{ pagination_controls(pagination, base_list_url, preserved_qs, drivers|length, 'Paginación conductores') }}{% endif %}
         {% else %}
         <div class="text-center py-5">
             <i class="bi bi-person-badge display-1 text-muted"></i>

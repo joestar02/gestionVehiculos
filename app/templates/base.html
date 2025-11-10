@@ -13,7 +13,7 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <!-- Custom CSS (identidad Junta de Andalucía) -->
-    <link rel="icon" href="{{ url_for('static', filename='img/jda_logo.svg') }}">
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}?v=4.0">
     
     {% block extra_css %}{% endblock %}
@@ -25,19 +25,10 @@
     <!-- Navigation - Estilo Junta de Andalucía -->
     <nav class="navbar navbar-expand-lg navbar-junta">
         <!-- Top green bar with white logo (JdA) -->
-        <div class="jda-topbar d-none d-lg-flex align-items-center">
-            <div class="container-fluid px-4">
-                <a class="topbar-brand" href="{{ url_for('main.dashboard') if current_user.is_authenticated else url_for('auth.login') }}">
-                    <img src="{{ url_for('static', filename='img/jda_logo_white.svg') }}" alt="Junta de Andalucía" height="28">
-                </a>
-            </div>
-        </div>
         <div class="container-fluid px-4">
-            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('main.dashboard') if current_user.is_authenticated else url_for('auth.login') }}">
-                <img src="{{ url_for('static', filename='img/jda_logo.svg') }}" alt="Junta de Andalucía" height="44" class="me-2">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('main.dashboard') if current_user.is_authenticated else url_for('auth.login') }}">               
                 <div class="brand-text">
                     <div class="app-title">Sistema de Gestión de Flota</div>
-                    <small class="app-sub">Junta de Andalucía</small>
                 </div>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">

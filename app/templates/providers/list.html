@@ -3,8 +3,8 @@
 {% block title %}Proveedores - {{ app_name }}{% endblock %}
 
 {% block content %}
-{% from '_includes/macros.html' import page_header %}
-{% call page_header('Proveedores', '<i class="bi bi-building"></i>', '') %}
+{% from '_includes/macros.html' import page_header, pagination_controls %}
+{% call page_header('Proveedores', '<h1><i class="bi bi-building"></i></h1>', '') %}
 {% endcall %}
 
 <div class="row">
@@ -64,6 +64,8 @@
                     </a>
                 </div>
                 {% endif %}
+
+                {% if pagination %}{{ pagination_controls(pagination, base_list_url, preserved_qs, providers|length, 'Paginación proveedores') }}{% endif %}
             </div>
         </div>
     </div>

@@ -44,6 +44,26 @@ body{font-family:var(--body-font);background:var(--jda-accent);color:#222}
 .card.login-card{border-radius:6px}
 .login-header .login-logo .bi{font-size:48px}
 
+/* Login specific styles to mimic Junta de Andalucía login */
+.login-left{background:linear-gradient(180deg,var(--jda-green) 0%,var(--jda-green-dark) 100%);min-height:220px}
+.login-left h3{color:#fff;font-weight:700}
+.login-left p{color:rgba(255,255,255,0.9)}
+.login-left img{filter:brightness(0) invert(1)}
+
+.login-card .card-body{padding:2rem}
+.login-card .form-label{font-weight:600}
+.login-card .input-group-text{border-right:0;background:#fff}
+.login-card .form-control{border-left:0}
+
+/* Slightly larger inputs matching the reference */
+.input-group-lg .form-control, .input-group-lg .form-select{padding:.85rem 1rem;height:calc(1.5em + 1rem)}
+
+/* Make the left panel collapse on small viewports and stack above */
+@media (max-width:767px){
+    .login-left{display:flex;align-items:center;justify-content:center;padding:1.5rem}
+    .login-card .row.g-0{flex-direction:column}
+}
+
 /* Responsive tweaks */
 @media (max-width:768px){
     .navbar-junta .app-title{font-size:0.98rem}

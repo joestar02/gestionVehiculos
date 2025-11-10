@@ -17,6 +17,8 @@ from app.models.itv import ITVResult
 from app.models.tax import TaxType, PaymentStatus
 from app.models.insurance import InsuranceType
 from app.models.fine import FineType, FineStatus
+from urllib.parse import urlencode
+from app.utils.pagination import paginate_list
 
 compliance_bp = Blueprint('compliance', __name__)
 
@@ -66,8 +68,22 @@ def insurance_list():
 @login_required
 def itv_records():
     """ITV records list"""
-    records = ITVService.get_all_itv_records()
-    return render_template('compliance/itv.html', records=records)
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+    try:
+        per_page = int(request.args.get('per_page', 20))
+    except ValueError:
+        per_page = 20
+
+    preserved_args = {k: v for k, v in request.args.items() if k != 'page'}
+    base_list_url = url_for('compliance.itv_records')
+    preserved_qs = urlencode(preserved_args) if preserved_args else ''
+
+    all_records = ITVService.get_all_itv_records()
+    records, pagination = paginate_list(all_records, page=page, per_page=per_page)
+    return render_template('compliance/itv.html', records=records, pagination=pagination, base_list_url=base_list_url, preserved_qs=preserved_qs)
 
 @compliance_bp.route('/itv/<int:record_id>')
 @login_required
@@ -129,8 +145,22 @@ def create_itv():
 @login_required
 def tax_records():
     """Tax records list"""
-    records = TaxService.get_all_taxes()
-    return render_template('compliance/taxes.html', records=records)
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+    try:
+        per_page = int(request.args.get('per_page', 20))
+    except ValueError:
+        per_page = 20
+
+    preserved_args = {k: v for k, v in request.args.items() if k != 'page'}
+    base_list_url = url_for('compliance.tax_records')
+    preserved_qs = urlencode(preserved_args) if preserved_args else ''
+
+    all_records = TaxService.get_all_taxes()
+    records, pagination = paginate_list(all_records, page=page, per_page=per_page)
+    return render_template('compliance/taxes.html', records=records, pagination=pagination, base_list_url=base_list_url, preserved_qs=preserved_qs)
 
 @compliance_bp.route('/taxes/<int:tax_id>')
 @login_required
@@ -205,8 +235,22 @@ def pay_tax(tax_id):
 @login_required
 def insurance_list():
     """Insurance records list"""
-    insurances = InsuranceService.get_all_insurances()
-    return render_template('compliance/insurances.html', insurances=insurances)
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+    try:
+        per_page = int(request.args.get('per_page', 20))
+    except ValueError:
+        per_page = 20
+
+    preserved_args = {k: v for k, v in request.args.items() if k != 'page'}
+    base_list_url = url_for('compliance.insurance_list')
+    preserved_qs = urlencode(preserved_args) if preserved_args else ''
+
+    all_insurances = InsuranceService.get_all_insurances()
+    insurances, pagination = paginate_list(all_insurances, page=page, per_page=per_page)
+    return render_template('compliance/insurances.html', insurances=insurances, pagination=pagination, base_list_url=base_list_url, preserved_qs=preserved_qs)
 
 @compliance_bp.route('/insurances/<int:insurance_id>')
 @login_required
@@ -374,8 +418,22 @@ def delete_insurance(insurance_id):
 @login_required
 def fine_records():
     """Fine records list"""
-    records = FineService.get_all_fines()
-    return render_template('compliance/fines.html', records=records)
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+    try:
+        per_page = int(request.args.get('per_page', 20))
+    except ValueError:
+        per_page = 20
+
+    preserved_args = {k: v for k, v in request.args.items() if k != 'page'}
+    base_list_url = url_for('compliance.fine_records')
+    preserved_qs = urlencode(preserved_args) if preserved_args else ''
+
+    all_records = FineService.get_all_fines()
+    records, pagination = paginate_list(all_records, page=page, per_page=per_page)
+    return render_template('compliance/fines.html', records=records, pagination=pagination, base_list_url=base_list_url, preserved_qs=preserved_qs)
 
 @compliance_bp.route('/fines/<int:fine_id>')
 @login_required
@@ -459,8 +517,22 @@ def pay_fine(fine_id):
 @login_required
 def authorization_records():
     """Authorization records list"""
-    records = AuthorizationService.get_all_authorizations()
-    return render_template('compliance/authorizations.html', records=records)
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+    try:
+        per_page = int(request.args.get('per_page', 20))
+    except ValueError:
+        per_page = 20
+
+    preserved_args = {k: v for k, v in request.args.items() if k != 'page'}
+    base_list_url = url_for('compliance.authorization_records')
+    preserved_qs = urlencode(preserved_args) if preserved_args else ''
+
+    all_records = AuthorizationService.get_all_authorizations()
+    records, pagination = paginate_list(all_records, page=page, per_page=per_page)
+    return render_template('compliance/authorizations.html', records=records, pagination=pagination, base_list_url=base_list_url, preserved_qs=preserved_qs)
 
 @compliance_bp.route('/authorizations/<int:auth_id>')
 @login_required

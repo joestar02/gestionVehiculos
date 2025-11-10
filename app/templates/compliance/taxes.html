@@ -3,6 +3,7 @@
 {% block title %}Impuestos - {{ app_name }}{% endblock %}
 
 {% block content %}
+{% from '_includes/macros.html' import pagination_controls %}
 <div class="row mb-4">
     <div class="col-md-6">
         <h1><i class="bi bi-currency-euro"></i> Registros de Impuestos</h1>
@@ -67,6 +68,7 @@
                 </tbody>
             </table>
         </div>
+            {% if pagination %}{{ pagination_controls(pagination, base_list_url, preserved_qs, records|length, 'Paginación impuestos') }}{% endif %}
         {% else %}
         <div class="text-center py-5">
             <i class="bi bi-currency-euro display-1 text-muted"></i>

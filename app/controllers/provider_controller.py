@@ -5,6 +5,8 @@ from app.services.provider_service import ProviderService
 from app.models.provider import ProviderType
 from app.models.user import UserRole
 from app.utils.error_helpers import log_exception
+from urllib.parse import urlencode
+from app.utils.pagination import paginate_list
 
 provider_bp = Blueprint('providers', __name__)
 
@@ -16,8 +18,22 @@ def list_providers():
         flash('Acceso denegado.', 'error')
         return redirect(url_for('main.index'))
 
-    providers = ProviderService.get_all_providers()
-    return render_template('providers/list.html', providers=providers)
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+    try:
+        per_page = int(request.args.get('per_page', 20))
+    except ValueError:
+        per_page = 20
+
+    preserved_args = {k: v for k, v in request.args.items() if k != 'page'}
+    base_list_url = url_for('providers.list_providers')
+    preserved_qs = urlencode(preserved_args) if preserved_args else ''
+
+    all_providers = ProviderService.get_all_providers()
+    providers, pagination = paginate_list(all_providers, page=page, per_page=per_page)
+    return render_template('providers/list.html', providers=providers, pagination=pagination, base_list_url=base_list_url, preserved_qs=preserved_qs)
 
 @provider_bp.route('/<int:provider_id>')
 @login_required

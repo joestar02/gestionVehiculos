@@ -11,6 +11,8 @@ from app.models.vehicle_driver_association import VehicleDriverAssociation
 from app.models.vehicle_assignment import VehicleAssignment, AssignmentType, PaymentStatus
 from app.models.user import UserRole
 from app.extensions import db
+from urllib.parse import urlencode
+from app.utils.pagination import paginate_list
 
 assignment_bp = Blueprint('assignments', __name__)
 
@@ -21,9 +23,22 @@ def list_assignments():
     if current_user.role not in [UserRole.ADMIN, UserRole.FLEET_MANAGER]:
         flash('Acceso denegado.', 'error')
         return redirect(url_for('main.index'))
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+    try:
+        per_page = int(request.args.get('per_page', 20))
+    except ValueError:
+        per_page = 20
 
-    assignments = VehicleDriverAssociation.query.filter_by(is_active=True).all()
-    return render_template('assignments/list.html', assignments=assignments)
+    preserved_args = {k: v for k, v in request.args.items() if k != 'page'}
+    base_list_url = url_for('assignments.list_assignments')
+    preserved_qs = urlencode(preserved_args) if preserved_args else ''
+
+    all_assignments = VehicleDriverAssociation.query.filter_by(is_active=True).all()
+    assignments, pagination = paginate_list(all_assignments, page=page, per_page=per_page)
+    return render_template('assignments/list.html', assignments=assignments, pagination=pagination, base_list_url=base_list_url, preserved_qs=preserved_qs)
 
 @assignment_bp.route('/assign', methods=['GET', 'POST'])
 @login_required
@@ -115,9 +130,22 @@ def cesion_records():
     if current_user.role not in [UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER]:
         flash('Acceso denegado.', 'error')
         return redirect(url_for('main.index'))
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+    try:
+        per_page = int(request.args.get('per_page', 20))
+    except ValueError:
+        per_page = 20
 
-    records = VehicleAssignmentService.get_all_assignments()
-    return render_template('assignments/cesiones.html', records=records)
+    preserved_args = {k: v for k, v in request.args.items() if k != 'page'}
+    base_list_url = url_for('assignments.cesion_records')
+    preserved_qs = urlencode(preserved_args) if preserved_args else ''
+
+    all_records = VehicleAssignmentService.get_all_assignments()
+    records, pagination = paginate_list(all_records, page=page, per_page=per_page)
+    return render_template('assignments/cesiones.html', records=records, pagination=pagination, base_list_url=base_list_url, preserved_qs=preserved_qs)
 
 @assignment_bp.route('/cesiones/<int:assignment_id>')
 @login_required

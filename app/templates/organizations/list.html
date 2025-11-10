@@ -3,7 +3,7 @@
 {% block title %}Organizaciones - {{ app_name }}{% endblock %}
 
 {% block content %}
-{% from '_includes/macros.html' import page_header %}
+{% from '_includes/macros.html' import page_header, pagination_controls %}
 {% call page_header('Estructura Organizativa', '<i class="bi bi-building"></i>', 'Gestión jerárquica de unidades organizativas') %}
     <a href="{{ url_for('organizations.create_organization') }}" class="btn btn-primary">
         <i class="bi bi-plus-circle"></i> Nueva Organización
@@ -202,4 +202,6 @@
     }
 }
 </style>
+    {# If controller provides pagination this will render; organizations tree is typically not paginated #}
+    {% if pagination %}{{ pagination_controls(pagination, base_list_url, preserved_qs, organizations|length, 'Paginación organizaciones') }}{% endif %}
 {% endblock %}

@@ -3,8 +3,8 @@
 {% block title %}Mantenimiento - {{ app_name }}{% endblock %}
 
 {% block content %}
-{% from '_includes/macros.html' import page_header %}
-{% call page_header('Mantenimiento', '<i class="bi bi-tools"></i>') %}
+{% from '_includes/macros.html' import page_header, pagination_controls %}
+{% call page_header('Mantenimiento', '<h1><i class="bi bi-tools"></i></h1>') %}
     <a href="{{ url_for('maintenance.create_maintenance') }}" class="btn btn-primary">
         <i class="bi bi-plus-circle"></i> Programar Mantenimiento
     </a>
@@ -62,6 +62,7 @@
                 </tbody>
             </table>
         </div>
+            {% if pagination %}{{ pagination_controls(pagination, base_list_url, preserved_qs, records|length, 'Paginación mantenimiento') }}{% endif %}
         {% else %}
         <div class="text-center py-5">
             <i class="bi bi-tools display-1 text-muted"></i>
