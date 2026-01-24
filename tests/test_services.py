@@ -4,6 +4,7 @@ Tests for application services
 import pytest
 from unittest.mock import patch, MagicMock
 from app.services.auth_service import AuthService
+from app.services.input_validation_service import InputValidator
 from app.models.user import User, UserRole
 from app.extensions import db
 
@@ -60,23 +61,105 @@ class TestAuthService:
 
     def test_get_user_by_username(self):
         """Test get user by username"""
-        with patch('app.services.auth_service.User') as mock_user_class:
+        with patch('app.models.user.User') as mock_user:
             mock_query = MagicMock()
-            mock_user_class.query.filter_by.return_value.first.return_value = None
-            mock_user_class.query = mock_query
+            mock_user.query.filter_by.return_value.first.return_value = None
+            mock_user.query = mock_query
 
             result = AuthService.get_user_by_username("testuser")
             assert result is None
 
     def test_get_user_by_email(self):
         """Test get user by email"""
-        with patch('app.services.auth_service.User') as mock_user_class:
+        with patch('app.models.user.User') as mock_user:
             mock_query = MagicMock()
-            mock_user_class.query.filter_by.return_value.first.return_value = None
-            mock_user_class.query = mock_query
+            mock_user.query.filter_by.return_value.first.return_value = None
+            mock_user.query = mock_query
 
             result = AuthService.get_user_by_email("test@example.com")
             assert result is None
+
+    def test_authenticate_user_success(self):
+        """Test successful user authentication"""
+        with patch('app.models.user.User') as mock_user_class, \
+             patch('app.services.auth_service.AuthService.verify_password', return_value=True), \
+             patch('app.extensions.db.session') as mock_session:
+            
+            mock_user = MagicMock()
+            mock_user.is_active = True
+            mock_user.hashed_password = "hashed"
+            mock_user_class.query.filter.return_value.first.return_value = mock_user
+
+            result = AuthService.authenticate_user("testuser", "password")
+            
+            assert result == mock_user
+            mock_session.commit.assert_called_once()
+
+    def test_authenticate_user_not_found(self):
+        """Test authentication with non-existent user"""
+        with patch('app.models.user.User') as mock_user_class:
+            mock_user_class.query.filter.return_value.first.return_value = None
+
+            result = AuthService.authenticate_user("nonexistent", "password")
+            
+            assert result is None
+
+    def test_authenticate_user_inactive(self):
+        """Test authentication with inactive user"""
+        with patch('app.models.user.User') as mock_user_class:
+            mock_user = MagicMock()
+            mock_user.is_active = False
+            mock_user_class.query.filter.return_value.first.return_value = mock_user
+
+            result = AuthService.authenticate_user("testuser", "password")
+            
+            assert result is None
+
+    def test_authenticate_user_wrong_password(self):
+        """Test authentication with wrong password"""
+        with patch('app.models.user.User') as mock_user_class, \
+             patch('app.services.auth_service.AuthService.verify_password', return_value=False):
+            
+            mock_user = MagicMock()
+            mock_user.is_active = True
+            mock_user_class.query.filter.return_value.first.return_value = mock_user
+
+            result = AuthService.authenticate_user("testuser", "wrongpass")
+            
+            assert result is None
+
+    def test_create_user_success(self):
+        """Test successful user creation"""
+        with patch('app.models.user.User') as mock_user_class, \
+             patch('app.services.auth_service.AuthService.get_password_hash', return_value="hashed"), \
+             patch('app.extensions.db.session') as mock_session:
+            
+            mock_user_instance = MagicMock()
+            mock_user_class.query.filter_by.return_value.first.return_value = None
+            mock_user_class.return_value = mock_user_instance
+
+            result = AuthService.create_user("testuser", "test@example.com", "password")
+            
+            assert result == mock_user_instance
+            mock_session.add.assert_called_once_with(mock_user_instance)
+            mock_session.commit.assert_called_once()
+
+    def test_create_user_username_exists(self):
+        """Test user creation with existing username"""
+        with patch('app.models.user.User') as mock_user_class:
+            mock_user_class.query.filter_by.return_value.first.return_value = MagicMock()
+
+            with pytest.raises(ValueError, match="Username already exists"):
+                AuthService.create_user("existing", "test@example.com", "password")
+
+    def test_create_user_email_exists(self):
+        """Test user creation with existing email"""
+        with patch('app.models.user.User') as mock_user_class:
+            # Username check passes
+            mock_user_class.query.filter_by.side_effect = [None, MagicMock()]
+
+            with pytest.raises(ValueError, match="Email already exists"):
+                AuthService.create_user("newuser", "existing@example.com", "password")
 
 
 class TestInputValidationService:

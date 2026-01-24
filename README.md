@@ -1,119 +1,36 @@
-# Sistema de Gestión de Flota - Junta de Andalucía
+# Sistema de Gestión de Flota de Vehículos
 
-Aplicación web completa para la gestión integral de flotas de vehículos de la Junta de Andalucía, desarrollada con Flask y tecnologías modernas.
+Aplicación web para la gestión integral de flotas de vehículos, desarrollada con Flask.
 
-## 🚀 Características Principales
+## 🚀 Características
 
-### Gestión de Vehículos
-- **Catálogo completo** de vehículos con toda la información técnica
-- **Clasificación por tipos**: Turismos, furgonetas, vehículos especiales
-- **Estados de vehículos**: Disponible, en uso, mantenimiento, averiado
-- **Propiedad**: Propios, renting, leasing
+- Gestión de vehículos, conductores y reservas
+- Sistema de mantenimiento y cumplimiento normativo
+- Autenticación segura con roles
+- Interfaz responsive con Bootstrap
 
-### Gestión de Conductores
-- **Registro completo** de conductores autorizados
-- **Tipos de conductor**: Funcionario, eventual, externo
-- **Control de carnets**: Vencimientos y renovaciones automáticas
-- **Asignaciones históricas** y actuales
+## 🛠️ Tecnologías
 
-### Sistema de Reservas
-- **Reserva avanzada** con calendario integrado
-- **Gestión de conflictos** de disponibilidad
-- **Aprobaciones automáticas** según permisos
-- **Historial completo** de reservas
+- **Backend**: Flask, SQLAlchemy, PostgreSQL/SQLite
+- **Frontend**: Bootstrap, HTML/CSS
+- **Seguridad**: Flask-Login, Flask-Limiter, CSRF
 
-### Mantenimiento y Cumplimiento
-- **Planes de mantenimiento** preventivo y correctivo
-- **Control de ITV** y seguros
-- **Registro de accidentes** y sanciones
-- **Documentación legal** y permisos
+## 🚀 Instalación y Uso
 
-### Seguridad y Auditoría
-- **Autenticación segura** con rate limiting
-- **Registro completo** de actividades
-- **Permisos granulares** por roles
-- **Auditoría de seguridad** automática
+1. Clona el repositorio
+2. Instala dependencias: `pip install -r requirements.txt`
+3. Configura variables de entorno (ver `app/core/config.py`)
+4. Ejecuta: `python run.py`
 
-## 🛠️ Tecnologías Utilizadas
+## 🧪 Tests
 
-### Backend
-- **Flask 3.0** - Framework web Python
-- **SQLAlchemy 2.0** - ORM para base de datos
-- **Flask-Login** - Gestión de sesiones
-- **Flask-Limiter** - Protección contra ataques
-- **Flask-Talisman** - Headers de seguridad
+Ejecuta tests con: `python -m pytest`
 
-### Frontend
-- **Bootstrap 5.3** - Framework CSS responsive
-- **Bootstrap Icons 1.11** - Iconografía completa
-- **CSS personalizado** - Identidad corporativa Junta de Andalucía
+## 📄 Licencia
 
-### Base de Datos
-- **SQLite** (desarrollo) / **PostgreSQL** (producción)
-- **Alembic** - Migraciones de esquema
-- **Relaciones complejas** - Modelo entidad-relación optimizado
+Propiedad de la Junta de Andalucía.
 
-### Seguridad
-- **Rate limiting** - 5 peticiones/minuto para login
-- **CSRF Protection** - Tokens anti-falsificación
-- **Content Security Policy** - Protección XSS
-- **Auditoría completa** - Log de todas las acciones
-
-## 📋 Instalación y Configuración
-
-### Prerrequisitos
-- **Python 3.11+**
-- **pip** (gestor de paquetes Python)
-- **Git** (opcional, para control de versiones)
-
-### 1. Clonar el repositorio
-```bash
-git clone <url-del-repositorio>
-cd gestionVehiculos
-```
-
-### 2. Crear entorno virtual
-```bash
-python -m venv venv
-# Windows
-venv\Scripts\activate
-# Linux/Mac
-source venv/bin/activate
-```
-
-### 3. Instalar dependencias
-```bash
-pip install -r requirements.txt
-```
-Para desarrollo y pruebas (formatters, linters, pytest, Sphinx) instala también:
-```bash
-pip install -r requirements-dev.txt
-```
-
-### 4. Configurar variables de entorno
-```bash
-cp .env.example .env
-# Editar .env con tus configuraciones
-```
-
-### 5. Inicializar base de datos
-```bash
-python run.py
-```
-*(La aplicación se iniciará y creará automáticamente las tablas)*
-
-### 6. Crear usuario administrador
-No se recomienda usar credenciales por defecto. Para crear un usuario administrador usa el script de administración incluido (si existe) o crea la cuenta desde la interfaz web con un usuario de privilegios.
-
-Si necesitases crear un administrador desde consola y el script `create_admin_user.py` está disponible en `archive_root_files/`, ejecútalo así:
-```powershell
-python archive_root_files\create_admin_user.py --username admin --email admin@example.com
-```
-O crea el usuario desde la interfaz una vez arrancada la aplicación.
-
-## 🚀 Inicio Rápido
-
-### Desarrollo
+**Versión**: 1.0.0
 ```bash
 python run.py
 ```

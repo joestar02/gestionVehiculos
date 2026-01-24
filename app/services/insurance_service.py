@@ -2,7 +2,7 @@
 from typing import List, Optional
 from datetime import datetime, timedelta
 from app.extensions import db
-from app.models.insurance import VehicleInsurance, InsuranceType, PaymentStatus
+from app.models.insurance import VehicleInsurance, InsuranceType, InsurancePaymentStatus
 from sqlalchemy.exc import IntegrityError
 
 class InsuranceService:
@@ -24,13 +24,13 @@ class InsuranceService:
     @staticmethod
     def get_pending_insurances() -> List[VehicleInsurance]:
         """Get all pending insurance payments"""
-        return VehicleInsurance.query.filter_by(payment_status=PaymentStatus.PENDING).all()
+        return VehicleInsurance.query.filter_by(payment_status=InsurancePaymentStatus.PENDING).all()
 
     @staticmethod
     def get_expiring_soon_insurances(days: int = 30) -> List[VehicleInsurance]:
         """Get all insurances expiring soon"""
         return VehicleInsurance.query.filter(
-            VehicleInsurance.payment_status == PaymentStatus.PENDING,
+            VehicleInsurance.payment_status == InsurancePaymentStatus.PENDING,
             VehicleInsurance.end_date <= datetime.utcnow() + timedelta(days=days)
         ).all()
 
@@ -81,7 +81,7 @@ class InsuranceService:
         """Mark insurance as paid"""
         insurance = VehicleInsurance.query.get(insurance_id)
         if insurance:
-            insurance.payment_status = PaymentStatus.PAID
+            insurance.payment_status = InsurancePaymentStatus.PAID
             insurance.payment_date = payment_date
             if payment_method:
                 insurance.payment_method = payment_method

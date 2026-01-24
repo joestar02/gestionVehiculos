@@ -13,7 +13,7 @@ class InsuranceType(str, enum.Enum):
     CRISTALES = "cristales"
     OTHER = "otro"
 
-class PaymentStatus(str, enum.Enum):
+class InsurancePaymentStatus(str, enum.Enum):
     PENDING = "pendiente"
     PAID = "pagado"
     OVERDUE = "con_retraso"
@@ -31,7 +31,7 @@ class VehicleInsurance(db.Model):
     start_date = Column(DateTime, nullable=False)
     end_date = Column(DateTime, nullable=False)
     payment_date = Column(DateTime)
-    payment_status = Column(Enum(PaymentStatus), default=PaymentStatus.PENDING)
+    payment_status = Column(Enum(InsurancePaymentStatus), default=InsurancePaymentStatus.PENDING)
     payment_method = Column(String(50))
     payment_reference = Column(String(100))
     document_path = Column(String(500))  # Insurance policy document file path
@@ -49,7 +49,7 @@ class VehicleInsurance(db.Model):
 
     @property
     def is_expiring_soon(self):
-        if self.end_date and self.alert_days_before and self.payment_status == PaymentStatus.PENDING:
+        if self.end_date and self.alert_days_before and self.payment_status == InsurancePaymentStatus.PENDING:
             days_until_expiry = (self.end_date - datetime.utcnow()).days
             return days_until_expiry <= self.alert_days_before
         return False

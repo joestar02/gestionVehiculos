@@ -44,18 +44,19 @@ class Config:
     FIRST_SUPERUSER_PASSWORD = os.environ.get('FIRST_SUPERUSER_PASSWORD')  # No default password
 
     def __init__(self):
-        # Set SQLALCHEMY_DATABASE_URI based on USE_SQLITE
-        if self.USE_SQLITE:
-            db_path = os.path.join(os.getcwd(), self.SQLITE_DB_PATH)
-            self.SQLALCHEMY_DATABASE_URI = f"sqlite:///{db_path}"
-        else:
-            # Validate required environment variables for PostgreSQL
-            if not self.POSTGRES_PASSWORD:
-                raise ValueError("POSTGRES_PASSWORD environment variable is required when USE_SQLITE is False")
-            self.SQLALCHEMY_DATABASE_URI = (
-                f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@"
-                f"{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
-            )
+        # Set SQLALCHEMY_DATABASE_URI based on USE_SQLITE, but only if not already set
+        if not hasattr(self, 'SQLALCHEMY_DATABASE_URI'):
+            if self.USE_SQLITE:
+                db_path = os.path.join(os.getcwd(), self.SQLITE_DB_PATH)
+                self.SQLALCHEMY_DATABASE_URI = f"sqlite:///{db_path}"
+            else:
+                # Validate required environment variables for PostgreSQL
+                if not self.POSTGRES_PASSWORD:
+                    raise ValueError("POSTGRES_PASSWORD environment variable is required when USE_SQLITE is False")
+                self.SQLALCHEMY_DATABASE_URI = (
+                    f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@"
+                    f"{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
+                )
 
 class DevelopmentConfig(Config):
     """Development configuration"""

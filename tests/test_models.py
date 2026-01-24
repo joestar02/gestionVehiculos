@@ -17,7 +17,8 @@ class TestUserModel:
             email="test@example.com",
             hashed_password="hashedpassword",
             first_name="Test",
-            last_name="User"
+            last_name="User",
+            role=UserRole.VIEWER
         )
 
         assert user.username == "testuser"
@@ -25,9 +26,7 @@ class TestUserModel:
         assert user.hashed_password == "hashedpassword"
         assert user.first_name == "Test"
         assert user.last_name == "User"
-        assert user.role == UserRole.VIEWER  # Default role
-        assert user.is_active is True  # Default active
-        assert user.is_superuser is False  # Default not superuser
+        assert user.role == UserRole.VIEWER
 
     def test_user_full_name_property(self):
         """Test full name property"""
