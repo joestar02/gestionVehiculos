@@ -11,8 +11,11 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-calendar-event"></i> Agenda Mensual</h5>
+                <a href="{{ url_for('reservations.create_reservation') }}" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i> Nueva Reserva
+                </a>
             </div>
             <div class="card-body">
                 <!-- Navigation controls -->
@@ -23,7 +26,8 @@
                            class="btn btn-primary">
                             <i class="bi bi-chevron-left"></i>
                         </a>
-                        <h6 class="mb-0 text-primary">{{ current_month.strftime('%B %Y') | title }}</h6>
+                        {% set months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'] %}
+                        <h6 class="mb-0 text-primary">{{ months[current_month.month - 1] }} {{ current_month.year }}</h6>
                         <a href="{{ url_for('main.dashboard', year=current_month.year if current_month.month < 12 else current_month.year+1, month=current_month.month+1 if current_month.month < 12 else 1) }}"
                            class="btn btn-primary">
                             <i class="bi bi-chevron-right"></i>
@@ -86,7 +90,7 @@
                             {% if day.day %}
                             <div class="day-content">
                                 <div class="day-number {% if day.is_today %}today-number{% endif %}">
-                                    <a href="{{ url_for('reservations.list_reservations') }}?date={{ day.date.isoformat() }}" class="stretched-link text-decoration-none {% if day.is_today %}text-white{% endif %}">{{ day.day }}</a>
+                                    <a href="{{ url_for('reservations.list_reservations') }}?date={{ day.date.isoformat() }}" class="stretched-link text-decoration-none text-primary {% if day.is_today %}text-white{% endif %}">{{ day.day }}</a>
                                 </div>
                                 {% if day.reservations %}
                                 <div class="day-reservations">
@@ -124,13 +128,6 @@
                         <div class="legend-color other-month-color"></div>
                         <span>Otros meses</span>
                     </div>
-                </div>
-
-                <!-- Quick actions -->
-                <div class="d-flex justify-content-center gap-3 mt-4">
-                    <a href="{{ url_for('reservations.create_reservation') }}" class="btn btn-success">
-                        <i class="bi bi-plus-circle"></i> Nueva Reserva
-                    </a>
                 </div>
             </div>
         </div>
@@ -195,7 +192,7 @@
 }
 
 .calendar-day.today {
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    background: linear-gradient(135deg, #007a3d 0%, #005a2b 100%);
     color: #ffffff;
 }
 
@@ -275,7 +272,7 @@
 }
 
 .today-color {
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    background: linear-gradient(135deg, #007a3d 0%, #005a2b 100%);
 }
 
 .current-month-color {

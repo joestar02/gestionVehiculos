@@ -26,9 +26,9 @@ def list_transfers():
     except ValueError:
         page = 1
     try:
-        per_page = int(request.args.get('per_page', 20))
+        per_page = int(request.args.get('per_page', 10))
     except ValueError:
-        per_page = 20
+        per_page = 10
 
     preserved_args = {k: v for k, v in request.args.items() if k != 'page'}
     base_list_url = url_for('vehicle_transfers.list_transfers')

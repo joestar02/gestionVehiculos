@@ -38,9 +38,9 @@ def list_reservations():
     except ValueError:
         page = 1
     try:
-        per_page = int(request.args.get('per_page', 20))
+        per_page = int(request.args.get('per_page', 10))
     except ValueError:
-        per_page = 20
+        per_page = 10
 
     # preserved query params (all except page) to keep filters when navigating pages
     preserved_args = {k: v for k, v in request.args.items() if k != 'page'}
@@ -67,7 +67,9 @@ def list_reservations():
 
     # pagination is a Pagination object from Flask-SQLAlchemy
     reservations = pagination.items if hasattr(pagination, 'items') else []
-    return render_template('reservations/list.html', reservations=reservations, pagination=pagination, preserved_args=preserved_args, base_list_url=base_list_url, preserved_qs=preserved_qs)
+    is_date_filtered = date_str is not None
+    filtered_date = day if date_str else None
+    return render_template('reservations/list.html', reservations=reservations, pagination=pagination, preserved_args=preserved_args, base_list_url=base_list_url, preserved_qs=preserved_qs, is_date_filtered=is_date_filtered, filtered_date=filtered_date)
 
 @reservation_bp.route('/<int:reservation_id>')
 @login_required

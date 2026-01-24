@@ -72,9 +72,15 @@
         {% else %}
         <div class="text-center py-5">
             <i class="bi bi-calendar-check display-1 text-muted"></i>
-            <p class="mt-3 text-muted">No hay reservas registradas.</p>
+            <p class="mt-3 text-muted">
+                {% if is_date_filtered %}
+                    No hay reservas registradas para el día {{ filtered_date.strftime('%d/%m/%Y') }}.
+                {% else %}
+                    No hay reservas registradas.
+                {% endif %}
+            </p>
             <a href="{{ url_for('reservations.create_reservation') }}" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Crear Primera Reserva
+                <i class="bi bi-plus-circle"></i> Crear Nueva Reserva
             </a>
         </div>
         {% endif %}

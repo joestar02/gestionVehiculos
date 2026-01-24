@@ -19,9 +19,9 @@ def list_vehicles():
     except ValueError:
         page = 1
     try:
-        per_page = int(request.args.get('per_page', 20))
+        per_page = int(request.args.get('per_page', 10))
     except ValueError:
-        per_page = 20
+        per_page = 10
 
     preserved_args = {k: v for k, v in request.args.items() if k != 'page'}
     base_list_url = url_for('vehicles.list_vehicles')
@@ -169,9 +169,9 @@ def search_vehicles():
     except ValueError:
         page = 1
     try:
-        per_page = int(request.args.get('per_page', 20))
+        per_page = int(request.args.get('per_page', 10))
     except ValueError:
-        per_page = 20
+        per_page = 10
 
     preserved_args = {k: v for k, v in request.args.items() if k != 'page'}
     base_list_url = url_for('vehicles.search_vehicles')
