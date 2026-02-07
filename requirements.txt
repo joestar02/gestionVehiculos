@@ -7,23 +7,30 @@ WTForms==3.1.1
 Flask-Limiter==3.5.0
 Flask-Talisman==1.1.0
 Flask-Migrate==4.0.5
-Flask-Cors==4.0.0
+# Flask-Cors==4.0.0  # REMOVIDO: no se usa en el código
 Flask-Bcrypt==1.0.1
+
+# FastAPI integration
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+flask-fastapi==0.2.1
 
 # Database
 SQLAlchemy==2.0.23
 alembic==1.12.1
 psycopg2-binary==2.9.9
 
-# Security
-PyJWT==2.8.0
+# Security and JWT
+# PyJWT==2.8.0  # REMOVIDO: no se usa, se usa python-jose en su lugar
+python-jose[cryptography]==3.3.0  # Agregado: usado en security.py y deps.py
 passlib[bcrypt]==1.7.4
 bcrypt==4.1.1
 itsdangerous==2.1.2
 
 # Form handling and validation
 email-validator==2.1.0
-python-dotenv==1.0.0
+# python-dotenv==1.0.0  # REMOVIDO: no se usa en el código
 
 # Web utilities
 Werkzeug==3.0.1

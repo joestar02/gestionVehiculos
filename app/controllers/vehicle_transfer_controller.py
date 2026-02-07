@@ -10,17 +10,15 @@ from app.models.vehicle_assignment import VehicleAssignment, AssignmentType, Pay
 from urllib.parse import urlencode
 from app.utils.pagination import paginate_list
 from app.models.user import UserRole
+from app.core.permissions import has_role, has_permission
 
 vehicle_transfer_bp = Blueprint('vehicle_transfers', __name__, url_prefix='/vehicle-transfers')
 
 @vehicle_transfer_bp.route('/')
 @login_required
+@has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER)
 def list_transfers():
     """List all vehicle transfers"""
-    if current_user.role not in [UserRole.ADMIN, UserRole.FLEET_MANAGER]:
-        flash('Acceso denegado.', 'error')
-        return redirect(url_for('main.index'))
-
     try:
         page = int(request.args.get('page', 1))
     except ValueError:
@@ -40,12 +38,9 @@ def list_transfers():
 
 @vehicle_transfer_bp.route('/new', methods=['GET', 'POST'])
 @login_required
+@has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER)
 def create_transfer():
     """Create new vehicle transfer"""
-    if current_user.role not in [UserRole.ADMIN, UserRole.FLEET_MANAGER]:
-        flash('Acceso denegado.', 'error')
-        return redirect(url_for('main.index'))
-
     if request.method == 'POST':
         try:
             start_date = datetime.strptime(request.form.get('start_date'), '%Y-%m-%d')
@@ -93,12 +88,9 @@ def view_transfer(transfer_id):
 
 @vehicle_transfer_bp.route('/<int:transfer_id>/edit', methods=['GET', 'POST'])
 @login_required
+@has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER)
 def edit_transfer(transfer_id):
     """Edit vehicle transfer"""
-    if current_user.role not in [UserRole.ADMIN, UserRole.FLEET_MANAGER]:
-        flash('Acceso denegado.', 'error')
-        return redirect(url_for('main.index'))
-
     transfer = VehicleTransferService.get_transfer_by_id(transfer_id)
     if not transfer:
         flash('Cesión no encontrada', 'error')
@@ -141,12 +133,9 @@ def edit_transfer(transfer_id):
 
 @vehicle_transfer_bp.route('/<int:transfer_id>/delete', methods=['POST'])
 @login_required
+@has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER)
 def delete_transfer(transfer_id):
     """Delete vehicle transfer"""
-    if current_user.role not in [UserRole.ADMIN, UserRole.FLEET_MANAGER]:
-        flash('Acceso denegado.', 'error')
-        return redirect(url_for('main.index'))
-
     try:
         VehicleTransferService.delete_transfer(transfer_id)
         flash('Cesión eliminada exitosamente', 'success')

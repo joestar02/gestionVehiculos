@@ -4,6 +4,8 @@ from flask_login import login_required, current_user
 from app.services.vehicle_service import VehicleService
 from app.models.vehicle import VehicleType, OwnershipType, VehicleStatus
 from app.utils.error_helpers import log_exception
+from app.core.permissions import has_permission, audit_operation
+from app.services.security_audit_service import SecurityAudit
 from urllib.parse import urlencode
 from app.utils.pagination import paginate_list
 
@@ -61,10 +63,15 @@ def view_vehicle(vehicle_id):
 
 @vehicle_bp.route('/new', methods=['GET', 'POST'])
 @login_required
+@has_permission('vehicle:create')
+@audit_operation('CREATE', 'vehicle')
 def create_vehicle():
     """Create new vehicle"""
     if request.method == 'POST':
         try:
+            # Capture old state (none for creation)
+            old_values = None
+
             vehicle = VehicleService.create_vehicle(
                 license_plate=request.form.get('license_plate'),
                 make=request.form.get('make'),
@@ -78,13 +85,51 @@ def create_vehicle():
                 fuel_capacity=int(request.form.get('fuel_capacity')) if request.form.get('fuel_capacity') else None,
                 notes=request.form.get('notes')
             )
+
+            # Log successful creation with details
+            SecurityAudit.log_data_operation(
+                operation='CREATE',
+                resource_type='vehicle',
+                resource_id=str(vehicle.id),
+                new_values={
+                    'license_plate': vehicle.license_plate,
+                    'make': vehicle.make,
+                    'model': vehicle.model,
+                    'year': vehicle.year,
+                    'vehicle_type': vehicle.vehicle_type.value,
+                    'ownership_type': vehicle.ownership_type.value,
+                    'color': vehicle.color,
+                    'vin': vehicle.vin,
+                    'fuel_type': vehicle.fuel_type,
+                    'fuel_capacity': vehicle.fuel_capacity,
+                    'status': vehicle.status.value
+                },
+                details={
+                    'created_by_user': current_user.username,
+                    'user_role': current_user.role.value,
+                    'form_data': dict(request.form)
+                }
+            )
+
             flash(f'Vehículo {vehicle.license_plate} creado exitosamente', 'success')
             return redirect(url_for('vehicles.view_vehicle', vehicle_id=vehicle.id))
         except Exception as e:
+            # Log failed creation
+            SecurityAudit.log_data_operation(
+                operation='CREATE',
+                resource_type='vehicle',
+                resource_id='failed',
+                details={
+                    'error': str(e),
+                    'error_type': type(e).__name__,
+                    'form_data': dict(request.form),
+                    'created_by_user': current_user.username if current_user.is_authenticated else 'unknown'
+                }
+            )
             err_id = log_exception(e, __name__)
             flash(f'Error al crear vehículo (id={err_id})', 'error')
-    
-    return render_template('vehicles/form.html', 
+
+    return render_template('vehicles/form.html',
                          vehicle_types=VehicleType,
                          ownership_types=OwnershipType)
 
@@ -128,29 +173,121 @@ def edit_vehicle(vehicle_id):
 
 @vehicle_bp.route('/<int:vehicle_id>/delete', methods=['POST'])
 @login_required
+@has_permission('vehicle:delete')
+@audit_operation('DELETE', 'vehicle')
 def delete_vehicle(vehicle_id):
     """Delete vehicle"""
-    if VehicleService.delete_vehicle(vehicle_id):
+    # Get vehicle details before deletion for logging
+    vehicle = VehicleService.get_vehicle_by_id(vehicle_id)
+    old_values = None
+
+    if vehicle:
+        old_values = {
+            'id': vehicle.id,
+            'license_plate': vehicle.license_plate,
+            'make': vehicle.make,
+            'model': vehicle.model,
+            'year': vehicle.year,
+            'vehicle_type': vehicle.vehicle_type.value,
+            'ownership_type': vehicle.ownership_type.value,
+            'status': vehicle.status.value,
+            'color': vehicle.color,
+            'vin': vehicle.vin
+        }
+
+    success = VehicleService.delete_vehicle(vehicle_id)
+
+    if success:
+        # Log successful deletion
+        SecurityAudit.log_data_operation(
+            operation='DELETE',
+            resource_type='vehicle',
+            resource_id=str(vehicle_id),
+            old_values=old_values,
+            details={
+                'deleted_by_user': current_user.username,
+                'user_role': current_user.role.value,
+                'vehicle_info': old_values
+            }
+        )
         flash('Vehículo eliminado exitosamente', 'success')
     else:
+        # Log failed deletion
+        SecurityAudit.log_data_operation(
+            operation='DELETE',
+            resource_type='vehicle',
+            resource_id=str(vehicle_id),
+            details={
+                'error': 'Vehicle not found or deletion failed',
+                'attempted_by_user': current_user.username,
+                'user_role': current_user.role.value
+            }
+        )
         flash('Error al eliminar vehículo', 'error')
+
     return redirect(url_for('vehicles.list_vehicles'))
 
 @vehicle_bp.route('/<int:vehicle_id>/status', methods=['POST'])
 @login_required
+@has_permission('vehicle:edit')
+@audit_operation('UPDATE', 'vehicle_status')
 def update_status(vehicle_id):
     """Update vehicle status"""
     try:
+        # Get current vehicle state
+        vehicle = VehicleService.get_vehicle_by_id(vehicle_id)
+        old_status = vehicle.status.value if vehicle else None
+
         status = VehicleStatus(request.form.get('status'))
         vehicle = VehicleService.update_vehicle_status(vehicle_id, status)
+
         if vehicle:
+            # Log successful status update
+            SecurityAudit.log_data_operation(
+                operation='UPDATE',
+                resource_type='vehicle',
+                resource_id=str(vehicle_id),
+                old_values={'status': old_status},
+                new_values={'status': status.value},
+                details={
+                    'updated_by_user': current_user.username,
+                    'user_role': current_user.role.value,
+                    'status_change': f'{old_status} -> {status.value}',
+                    'vehicle_info': {
+                        'license_plate': vehicle.license_plate,
+                        'make': vehicle.make,
+                        'model': vehicle.model
+                    }
+                }
+            )
             flash(f'Estado del vehículo actualizado a {status.value}', 'success')
         else:
+            SecurityAudit.log_data_operation(
+                operation='UPDATE',
+                resource_type='vehicle',
+                resource_id=str(vehicle_id),
+                details={
+                    'error': 'Vehicle not found',
+                    'attempted_status': status.value,
+                    'attempted_by_user': current_user.username
+                }
+            )
             flash('Vehículo no encontrado', 'error')
     except Exception as e:
+        SecurityAudit.log_data_operation(
+            operation='UPDATE',
+            resource_type='vehicle',
+            resource_id=str(vehicle_id),
+            details={
+                'error': str(e),
+                'error_type': type(e).__name__,
+                'attempted_status': request.form.get('status'),
+                'attempted_by_user': current_user.username
+            }
+        )
         err_id = log_exception(e, __name__)
         flash(f'Error al actualizar estado (id={err_id})', 'error')
-    
+
     return redirect(url_for('vehicles.view_vehicle', vehicle_id=vehicle_id))
 
 @vehicle_bp.route('/search')

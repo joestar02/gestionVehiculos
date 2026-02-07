@@ -27,6 +27,7 @@ def create_tables():
             from app.models import maintenance, reservation, fine, insurance
             from app.models import itv, tax, accident, authorization
             from app.models import renting_contract, vehicle_driver_association, vehicle_pickup
+            from app.models import permission
 
             print("Creating database tables...")
             db.create_all()

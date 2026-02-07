@@ -6,6 +6,7 @@ class Config:
     """Base configuration"""
     PROJECT_NAME = "Gestión de Flota de Vehículos"
     VERSION = "1.0.0"
+    API_V1_STR = "/api/v1"
 
     # Flask
     # Generate a secure secret key if not provided via environment
@@ -84,3 +85,6 @@ config = {
 def get_config():
     env = os.environ.get('FLASK_ENV', 'development')
     return config.get(env, config['default'])
+
+# Create settings object for FastAPI compatibility
+settings = get_config()

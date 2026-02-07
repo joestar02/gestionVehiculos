@@ -33,7 +33,7 @@
                                 {% endif %}
                             {% endwith %}
                             
-                            <h4 class="text-center mb-4 text-junta-verde">Acceso al Sistema</h4>
+                            <h4 class="text-center mb-4 text-primary">Acceso al Sistema</h4>
                             
                             <form method="POST" action="{{ url_for('auth.login') }}">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -41,7 +41,7 @@
                                     <label for="username" class="form-label">Usuario o Email</label>
                                     <div class="input-group input-group-lg">
                                         <span class="input-group-text bg-white">
-                                            <i class="bi bi-person text-junta-verde"></i>
+                                            <i class="bi bi-person text-primary"></i>
                                         </span>
                                         <input type="text" class="form-control" id="username" name="username" 
                                                placeholder="Ingresa tu usuario o email" required autofocus>
@@ -52,7 +52,7 @@
                                     <label for="password" class="form-label">Contraseña</label>
                                     <div class="input-group input-group-lg">
                                         <span class="input-group-text bg-white">
-                                            <i class="bi bi-lock text-junta-verde"></i>
+                                            <i class="bi bi-lock text-primary"></i>
                                         </span>
                                         <input type="password" class="form-control" id="password" name="password" 
                                                placeholder="Ingresa tu contraseña" required>
@@ -67,7 +67,7 @@
                                 </div>
                                 
                                 <div class="d-grid mb-3">
-                                    <button type="submit" class="btn btn-junta btn-lg">
+                                    <button type="submit" class="btn btn-primary btn-lg">
                                         <i class="bi bi-box-arrow-in-right me-2"></i> Acceder
                                     </button>
                                 </div>

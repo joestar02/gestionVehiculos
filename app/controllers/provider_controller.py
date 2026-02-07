@@ -7,17 +7,15 @@ from app.models.user import UserRole
 from app.utils.error_helpers import log_exception
 from urllib.parse import urlencode
 from app.utils.pagination import paginate_list
+from app.core.permissions import has_role, has_permission
 
 provider_bp = Blueprint('providers', __name__)
 
 @provider_bp.route('/')
 @login_required
+@has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER)
 def list_providers():
     """List all providers"""
-    if current_user.role not in [UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER]:
-        flash('Acceso denegado.', 'error')
-        return redirect(url_for('main.index'))
-
     try:
         page = int(request.args.get('page', 1))
     except ValueError:
@@ -37,12 +35,9 @@ def list_providers():
 
 @provider_bp.route('/<int:provider_id>')
 @login_required
+@has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER)
 def view_provider(provider_id):
     """View provider details"""
-    if current_user.role not in [UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER]:
-        flash('Acceso denegado.', 'error')
-        return redirect(url_for('main.index'))
-
     provider = ProviderService.get_provider_by_id(provider_id)
     if not provider:
         flash('Proveedor no encontrado', 'error')
@@ -52,12 +47,9 @@ def view_provider(provider_id):
 
 @provider_bp.route('/new', methods=['GET', 'POST'])
 @login_required
+@has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER)
 def create_provider():
     """Create new provider"""
-    if current_user.role not in [UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER]:
-        flash('Acceso denegado.', 'error')
-        return redirect(url_for('main.index'))
-
     if request.method == 'POST':
         try:
             provider = ProviderService.create_provider(
@@ -82,12 +74,9 @@ def create_provider():
 
 @provider_bp.route('/<int:provider_id>/edit', methods=['GET', 'POST'])
 @login_required
+@has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER)
 def edit_provider(provider_id):
     """Edit provider"""
-    if current_user.role not in [UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER]:
-        flash('Acceso denegado.', 'error')
-        return redirect(url_for('main.index'))
-
     provider = ProviderService.get_provider_by_id(provider_id)
     if not provider:
         flash('Proveedor no encontrado', 'error')
@@ -120,12 +109,9 @@ def edit_provider(provider_id):
 
 @provider_bp.route('/<int:provider_id>/delete', methods=['POST'])
 @login_required
+@has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER)
 def delete_provider(provider_id):
     """Delete provider"""
-    if current_user.role not in [UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER]:
-        flash('Acceso denegado.', 'error')
-        return redirect(url_for('main.index'))
-
     try:
         ProviderService.delete_provider(provider_id)
         flash('Proveedor eliminado exitosamente', 'success')

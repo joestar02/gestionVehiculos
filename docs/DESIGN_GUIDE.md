@@ -1,29 +1,29 @@
-# 🎨 Diseño Corporativo Junta de Andalucía
+# 🎨 Guía de Diseño - Sistema de Flota
 
 ## ✅ Implementación Completa
 
-Se ha aplicado el manual de identidad corporativa de la Junta de Andalucía al sistema de gestión de flota.
+Se ha aplicado un esquema de diseño profesional y consistente al sistema de gestión de flota.
 
 ---
 
-## 🎨 Colores Corporativos Aplicados
+## 🎨 Paleta de Colores del Sistema
 
-### Paleta de Colores Oficial
+### Colores Corporativos
 
 ```css
---junta-verde: #009640        /* Verde principal Junta */
---junta-verde-oscuro: #006838 /* Verde oscuro para hover */
---junta-gris: #58595B          /* Gris corporativo */
---junta-gris-claro: #E6E7E8    /* Gris claro para fondos */
---junta-blanco: #FFFFFF        /* Blanco */
+--primary-green: #009640        /* Verde primario */
+--dark-green: #006838           /* Verde oscuro para hover */
+--corporate-gray: #58595B       /* Gris corporativo */
+--light-gray: #E6E7E8           /* Gris claro para fondos */
+--white: #FFFFFF                /* Blanco */
 ```
 
 ### Aplicación de Colores
 
-- **Navbar**: Verde Junta (#009640)
-- **Botones primarios**: Verde Junta con hover verde oscuro
+- **Navbar**: Verde primario (#009640)
+- **Botones primarios**: Verde primario con hover verde oscuro
 - **Encabezados de tarjetas**: Borde verde con fondo gris claro
-- **Enlaces**: Verde Junta
+- **Enlaces**: Verde primario
 - **Footer**: Gris corporativo (#58595B)
 - **Texto**: Gris corporativo para mejor legibilidad
 
@@ -50,7 +50,7 @@ Se ha aplicado el manual de identidad corporativa de la Junta de Andalucía al s
 ### 1. Navbar (Barra de Navegación)
 
 **Características:**
-- ✅ Fondo verde Junta (#009640)
+- ✅ Fondo verde primario (#009640)
 - ✅ Logo con nombre del sistema en dos líneas
 - ✅ Enlaces con hover verde oscuro y border-radius
 - ✅ Menú completo con todos los módulos
@@ -73,7 +73,7 @@ Se ha aplicado el manual de identidad corporativa de la Junta de Andalucía al s
 ┌─────────────────────────────────────┐
 │  [Logo Circular Verde]              │
 │  Sistema de Gestión de Flota        │
-│  Junta de Andalucía                 │
+│  Sistema de Flota                   │
 ├─────────────────────────────────────┤
 │                                     │
 │  Acceso al Sistema                  │
@@ -86,7 +86,7 @@ Se ha aplicado el manual de identidad corporativa de la Junta de Andalucía al s
 │                                     │
 │  🛡️ Acceso seguro | ℹ️ Solicitar    │
 ├─────────────────────────────────────┤
-│  © 2024 Junta de Andalucía          │
+│  © 2024 Sistema de Flota            │
 └─────────────────────────────────────┘
 ```
 
@@ -110,7 +110,7 @@ Se ha aplicado el manual de identidad corporativa de la Junta de Andalucía al s
 ### 4. Buttons (Botones)
 
 **Botón Primario:**
-- ✅ Fondo verde Junta
+- ✅ Fondo verde primario
 - ✅ Texto blanco en negrita
 - ✅ Hover: Verde oscuro con elevación
 - ✅ Sombra verde en hover
@@ -151,11 +151,11 @@ Se ha aplicado el manual de identidad corporativa de la Junta de Andalucía al s
 ### CSS
 **`app/static/css/custom.css`** - COMPLETAMENTE REESCRITO
 - Variables CSS con colores corporativos
-- Estilos para navbar-junta
+- Estilos para navbar corporativo
 - Estilos para login-container
 - Estilos para cards, buttons, tables, forms
 - Footer corporativo
-- Clases utility (text-junta-verde, bg-junta-verde)
+- Clases utility (text-primary, bg-primary)
 - Responsive design
 
 ### Templates
@@ -169,7 +169,7 @@ Se ha aplicado el manual de identidad corporativa de la Junta de Andalucía al s
 - Formulario con iconos verdes
 
 **`app/templates/base.html`** - ACTUALIZADO
-- Navbar con estilo Junta
+- Navbar con estilo corporativo
 - Logo en dos líneas
 - Menú completo con todos los módulos
 - Footer corporativo
@@ -220,7 +220,7 @@ Usuario no autenticado → http://localhost:5000
     ↓
 Redirige a → /auth/login
     ↓
-Muestra → Página de login con diseño Junta
+Muestra → Página de login con diseño corporativo
     ↓
 Usuario ingresa credenciales
     ↓
@@ -308,22 +308,22 @@ Footer corporativo en todas las páginas
 ```css
 /* Usar en cualquier template */
 .mi-elemento {
-    color: var(--junta-verde);
-    background-color: var(--junta-gris-claro);
+    color: #009640;
+    background-color: #E6E7E8;
 }
 ```
 
 ### Clases Utility
 
 ```html
-<!-- Texto verde -->
-<p class="text-junta-verde">Texto en verde Junta</p>
+<!-- Texto verde primario -->
+<p class="text-primary">Texto en verde primario</p>
 
 <!-- Fondo verde -->
-<div class="bg-junta-verde">Fondo verde</div>
+<div class="bg-primary text-white">Fondo verde</div>
 
 <!-- Badge verde -->
-<span class="badge badge-junta">Estado</span>
+<span class="badge bg-primary">Estado</span>
 ```
 
 ---
@@ -338,7 +338,7 @@ Footer corporativo en todas las páginas
 - ❌ Footer básico
 
 ### Después
-- ✅ Colores corporativos Junta de Andalucía
+- ✅ Colores corporativos de Andalucía
 - ✅ Login como página principal
 - ✅ Navbar con branding corporativo
 - ✅ Login con diseño profesional
@@ -368,7 +368,7 @@ Footer corporativo en todas las páginas
 ### Branding ✅
 - Logo/icono visible
 - Nombre del sistema claro
-- Referencia a Junta de Andalucía
+- Referencia corporativa
 - Copyright y versión
 
 ---
@@ -398,11 +398,11 @@ Footer corporativo en todas las páginas
 2. **Diseño consistente**: Todos los módulos usan el mismo estilo
 3. **Responsive**: Funciona en móvil, tablet y desktop
 4. **Accesible**: Cumple con estándares de accesibilidad
-5. **Profesional**: Diseño corporativo de la Junta de Andalucía
+5. **Profesional**: Diseño corporativo y moderno
 
 ---
 
 **Versión:** 2.0.0  
 **Fecha:** Octubre 2024  
 **Estado:** ✅ DISEÑO CORPORATIVO IMPLEMENTADO  
-**Identidad:** Junta de Andalucía
+**Identidad:** Sistema de Gestión de Flota

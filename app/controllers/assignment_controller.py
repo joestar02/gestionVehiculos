@@ -13,16 +13,15 @@ from app.models.user import UserRole
 from app.extensions import db
 from urllib.parse import urlencode
 from app.utils.pagination import paginate_list
+from app.core.permissions import has_role, has_permission
 
 assignment_bp = Blueprint('assignments', __name__)
 
 @assignment_bp.route('/')
 @login_required
+@has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER)
 def list_assignments():
     """List all vehicle-driver assignments"""
-    if current_user.role not in [UserRole.ADMIN, UserRole.FLEET_MANAGER]:
-        flash('Acceso denegado.', 'error')
-        return redirect(url_for('main.index'))
     try:
         page = int(request.args.get('page', 1))
     except ValueError:
@@ -42,12 +41,9 @@ def list_assignments():
 
 @assignment_bp.route('/assign', methods=['GET', 'POST'])
 @login_required
+@has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER)
 def assign_vehicle():
     """Assign vehicle to driver"""
-    if current_user.role not in [UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER]:
-        flash('Acceso denegado.', 'error')
-        return redirect(url_for('main.index'))
-
     if request.method == 'POST':
         try:
             vehicle_id = int(request.form.get('vehicle_id'))
@@ -104,12 +100,9 @@ def assign_vehicle():
 
 @assignment_bp.route('/unassign/<int:assignment_id>', methods=['POST'])
 @login_required
+@has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER)
 def unassign_vehicle(assignment_id):
     """Unassign vehicle from driver"""
-    if current_user.role not in [UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER]:
-        flash('Acceso denegado.', 'error')
-        return redirect(url_for('main.index'))
-
     assignment = VehicleDriverAssociation.query.get(assignment_id)
     if not assignment:
         flash('Asignación no encontrada.', 'error')
@@ -125,11 +118,9 @@ def unassign_vehicle(assignment_id):
 # ============= Vehicle Assignment Routes (Cesión de vehículos) =============
 @assignment_bp.route('/cesiones')
 @login_required
+@has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER)
 def cesion_records():
     """Vehicle assignment records list"""
-    if current_user.role not in [UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER]:
-        flash('Acceso denegado.', 'error')
-        return redirect(url_for('main.index'))
     try:
         page = int(request.args.get('page', 1))
     except ValueError:
@@ -149,12 +140,9 @@ def cesion_records():
 
 @assignment_bp.route('/cesiones/<int:assignment_id>')
 @login_required
+@has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER)
 def view_cesion(assignment_id):
     """View vehicle assignment details"""
-    if current_user.role not in [UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER]:
-        flash('Acceso denegado.', 'error')
-        return redirect(url_for('main.index'))
-
     record = VehicleAssignmentService.get_assignment_by_id(assignment_id)
     if not record:
         flash('Registro de cesión no encontrado', 'error')
@@ -163,12 +151,9 @@ def view_cesion(assignment_id):
 
 @assignment_bp.route('/cesiones/new', methods=['GET', 'POST'])
 @login_required
+@has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER)
 def create_cesion():
     """Create new vehicle assignment"""
-    if current_user.role not in [UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER]:
-        flash('Acceso denegado.', 'error')
-        return redirect(url_for('main.index'))
-
     if request.method == 'POST':
         try:
             start_date = datetime.strptime(request.form.get('start_date'), '%Y-%m-%d')
@@ -242,11 +227,9 @@ def pay_cesion(assignment_id):
 
 @assignment_bp.route('/cesiones/<int:assignment_id>/edit', methods=['GET', 'POST'])
 @login_required
+@has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER)
 def edit_cesion(assignment_id):
     """Edit vehicle assignment"""
-    if current_user.role not in [UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER]:
-        flash('Acceso denegado.', 'error')
-        return redirect(url_for('main.index'))
 
     record = VehicleAssignmentService.get_assignment_by_id(assignment_id)
     if not record:
@@ -286,12 +269,9 @@ def edit_cesion(assignment_id):
 
 @assignment_bp.route('/cesiones/<int:assignment_id>/delete', methods=['POST'])
 @login_required
+@has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER)
 def delete_cesion(assignment_id):
     """Delete vehicle assignment"""
-    if current_user.role not in [UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER]:
-        flash('Acceso denegado.', 'error')
-        return redirect(url_for('main.index'))
-
     try:
         VehicleAssignmentService.delete_assignment(assignment_id)
         flash('Cesión eliminada exitosamente', 'success')

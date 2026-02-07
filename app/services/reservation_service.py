@@ -3,6 +3,7 @@ from typing import List, Optional
 from datetime import datetime
 from app.extensions import db
 from app.models.reservation import Reservation, ReservationStatus
+from app.services.security_audit_service import SecurityAudit
 
 class ReservationService:
     """Service for reservation operations"""
@@ -118,6 +119,29 @@ class ReservationService:
         db.session.commit()
         db.session.refresh(reservation)
         
+        # Log reservation creation
+        SecurityAudit.log_model_change(
+            model_class='Reservation',
+            operation='CREATE',
+            instance_id=str(reservation.id),
+            new_data={
+                'vehicle_id': reservation.vehicle_id,
+                'driver_id': reservation.driver_id,
+                'start_date': reservation.start_date.isoformat() if reservation.start_date else None,
+                'end_date': reservation.end_date.isoformat() if reservation.end_date else None,
+                'purpose': reservation.purpose,
+                'destination': reservation.destination,
+                'notes': reservation.notes,
+                'user_id': reservation.user_id,
+                'organization_unit_id': reservation.organization_unit_id,
+                'status': reservation.status.value if reservation.status else None
+            },
+            details={
+                'action': 'reservation_created',
+                'created_by_service': 'ReservationService.create_reservation'
+            }
+        )
+        
         return reservation
     
     @staticmethod
@@ -127,18 +151,67 @@ class ReservationService:
         if not reservation:
             return None
 
+        # Capture old values for logging
+        old_data = {
+            'vehicle_id': reservation.vehicle_id,
+            'driver_id': reservation.driver_id,
+            'start_date': reservation.start_date.isoformat() if reservation.start_date else None,
+            'end_date': reservation.end_date.isoformat() if reservation.end_date else None,
+            'purpose': reservation.purpose,
+            'destination': reservation.destination,
+            'notes': reservation.notes,
+            'user_id': reservation.user_id,
+            'organization_unit_id': reservation.organization_unit_id,
+            'status': reservation.status.value if reservation.status else None
+        }
+
         # If changing vehicle or dates, ensure no overlap
         new_vehicle = kwargs.get('vehicle_id', reservation.vehicle_id)
         new_start = kwargs.get('start_date', reservation.start_date)
         new_end = kwargs.get('end_date', reservation.end_date)
         ReservationService._check_vehicle_overlap(new_vehicle, new_start, new_end, exclude_reservation_id=reservation_id)
 
+        updated_fields = []
         for key, value in kwargs.items():
             if hasattr(reservation, key) and value is not None:
-                setattr(reservation, key, value)
+                current_value = getattr(reservation, key)
+                if current_value != value:
+                    setattr(reservation, key, value)
+                    updated_fields.append(key)
 
-        db.session.commit()
-        db.session.refresh(reservation)
+        if updated_fields:  # Only commit and log if something actually changed
+            db.session.commit()
+            db.session.refresh(reservation)
+
+            # Capture new values
+            new_data = {
+                'vehicle_id': reservation.vehicle_id,
+                'driver_id': reservation.driver_id,
+                'start_date': reservation.start_date.isoformat() if reservation.start_date else None,
+                'end_date': reservation.end_date.isoformat() if reservation.end_date else None,
+                'purpose': reservation.purpose,
+                'destination': reservation.destination,
+                'notes': reservation.notes,
+                'user_id': reservation.user_id,
+                'organization_unit_id': reservation.organization_unit_id,
+                'status': reservation.status.value if reservation.status else None
+            }
+
+            # Log reservation update
+            SecurityAudit.log_model_change(
+                model_class='Reservation',
+                operation='UPDATE',
+                instance_id=str(reservation.id),
+                old_data=old_data,
+                new_data=new_data,
+                details={
+                    'action': 'reservation_updated',
+                    'updated_fields': updated_fields,
+                    'updated_by_service': 'ReservationService.update_reservation'
+                }
+            )
+        else:
+            db.session.rollback()  # No changes made
 
         return reservation
     
@@ -149,12 +222,40 @@ class ReservationService:
         if not reservation:
             return None
         
+        # Capture old values for logging
+        old_data = {
+            'status': reservation.status.value if reservation.status else None,
+            'cancellation_reason': reservation.cancellation_reason,
+            'cancelled_at': reservation.cancelled_at.isoformat() if reservation.cancelled_at else None
+        }
+        
         reservation.status = ReservationStatus.CANCELLED
         reservation.cancellation_reason = cancellation_reason
         reservation.cancelled_at = datetime.utcnow()
         
         db.session.commit()
         db.session.refresh(reservation)
+        
+        # Capture new values
+        new_data = {
+            'status': reservation.status.value if reservation.status else None,
+            'cancellation_reason': reservation.cancellation_reason,
+            'cancelled_at': reservation.cancelled_at.isoformat() if reservation.cancelled_at else None
+        }
+        
+        # Log reservation cancellation
+        SecurityAudit.log_model_change(
+            model_class='Reservation',
+            operation='UPDATE',
+            instance_id=str(reservation.id),
+            old_data=old_data,
+            new_data=new_data,
+            details={
+                'action': 'reservation_cancelled',
+                'cancellation_reason': cancellation_reason,
+                'updated_by_service': 'ReservationService.cancel_reservation'
+            }
+        )
         
         return reservation
     
@@ -165,10 +266,26 @@ class ReservationService:
         if not reservation:
             return None
         
+        # Capture old status for logging
+        old_status = reservation.status.value if reservation.status else None
+        
         reservation.status = ReservationStatus.CONFIRMED
         
         db.session.commit()
         db.session.refresh(reservation)
+        
+        # Log reservation confirmation
+        SecurityAudit.log_model_change(
+            model_class='Reservation',
+            operation='UPDATE',
+            instance_id=str(reservation.id),
+            old_data={'status': old_status},
+            new_data={'status': reservation.status.value if reservation.status else None},
+            details={
+                'action': 'reservation_confirmed',
+                'updated_by_service': 'ReservationService.confirm_reservation'
+            }
+        )
         
         return reservation
     
@@ -179,12 +296,40 @@ class ReservationService:
         if not reservation:
             return None
         
+        # Capture old values for logging
+        old_data = {
+            'status': reservation.status.value if reservation.status else None,
+            'actual_start_date': reservation.actual_start_date.isoformat() if reservation.actual_start_date else None,
+            'actual_start_mileage': reservation.actual_start_mileage
+        }
+        
         reservation.status = ReservationStatus.IN_PROGRESS
         reservation.actual_start_date = datetime.utcnow()
         reservation.actual_start_mileage = actual_start_mileage
         
         db.session.commit()
         db.session.refresh(reservation)
+        
+        # Capture new values
+        new_data = {
+            'status': reservation.status.value if reservation.status else None,
+            'actual_start_date': reservation.actual_start_date.isoformat() if reservation.actual_start_date else None,
+            'actual_start_mileage': reservation.actual_start_mileage
+        }
+        
+        # Log reservation start
+        SecurityAudit.log_model_change(
+            model_class='Reservation',
+            operation='UPDATE',
+            instance_id=str(reservation.id),
+            old_data=old_data,
+            new_data=new_data,
+            details={
+                'action': 'reservation_started',
+                'actual_start_mileage': actual_start_mileage,
+                'updated_by_service': 'ReservationService.start_reservation'
+            }
+        )
         
         return reservation
     
@@ -196,6 +341,14 @@ class ReservationService:
         if not reservation:
             return None
         
+        # Capture old values for logging
+        old_data = {
+            'status': reservation.status.value if reservation.status else None,
+            'actual_end_date': reservation.actual_end_date.isoformat() if reservation.actual_end_date else None,
+            'actual_end_mileage': reservation.actual_end_mileage,
+            'notes': reservation.notes
+        }
+        
         reservation.status = ReservationStatus.COMPLETED
         reservation.actual_end_date = datetime.utcnow()
         reservation.actual_end_mileage = actual_end_mileage
@@ -204,5 +357,28 @@ class ReservationService:
         
         db.session.commit()
         db.session.refresh(reservation)
+        
+        # Capture new values
+        new_data = {
+            'status': reservation.status.value if reservation.status else None,
+            'actual_end_date': reservation.actual_end_date.isoformat() if reservation.actual_end_date else None,
+            'actual_end_mileage': reservation.actual_end_mileage,
+            'notes': reservation.notes
+        }
+        
+        # Log reservation completion
+        SecurityAudit.log_model_change(
+            model_class='Reservation',
+            operation='UPDATE',
+            instance_id=str(reservation.id),
+            old_data=old_data,
+            new_data=new_data,
+            details={
+                'action': 'reservation_completed',
+                'actual_end_mileage': actual_end_mileage,
+                'completion_notes': notes,
+                'updated_by_service': 'ReservationService.complete_reservation'
+            }
+        )
         
         return reservation

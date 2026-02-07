@@ -15,6 +15,7 @@ from .tax import VehicleTax, TaxType, PaymentStatus
 from .insurance import VehicleInsurance, InsuranceType, InsurancePaymentStatus
 from .fine import Fine, FineStatus, FineType
 from .authorization import UrbanAccessAuthorization
+from .permission import Permission, RolePermission
 
 __all__ = [
     "User",
@@ -55,4 +56,6 @@ __all__ = [
     "UrbanAccessAuthorization",
     "VehicleAssignment",
     "AssignmentType",
+    "Permission",
+    "RolePermission",
 ]

@@ -65,8 +65,17 @@ def login():
             client_ip = get_remote_address()
             failed_attempts.pop(client_ip, None)
 
-            # Log successful authentication
-            SecurityAudit.log_authentication_attempt(username, True, ip_address)
+            # Log successful authentication with enhanced details
+            SecurityAudit.log_authentication_attempt(
+                username,
+                True,
+                details={
+                    'login_method': 'web_form',
+                    'remember_me': remember,
+                    'user_agent': request.headers.get('User-Agent'),
+                    'next_page': next_page
+                }
+            )
 
             login_user(user, remember=remember)
             next_page = request.args.get('next')
@@ -75,8 +84,11 @@ def login():
             if next_page and not InputValidator.is_safe_url(next_page):
                 SecurityAudit.log_suspicious_activity(
                     "Suspicious redirect URL attempt",
-                    {"redirect_url": next_page, "username": username},
-                    ip_address
+                    {
+                        "redirect_url": next_page,
+                        "username": username,
+                        "validation_failed": True
+                    }
                 )
                 next_page = None
 

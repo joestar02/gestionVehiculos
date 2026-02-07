@@ -1,14 +1,46 @@
 """Flask application factory"""
-from flask import Flask
+from flask import Flask, g, request, jsonify
 from app.core.config import get_config
 from app.extensions import init_extensions
+from app.services.security_audit_service import SecurityAudit
+import time
 
 def create_app(config_name=None):
     """Create and configure Flask application"""
     app = Flask(__name__,
                 template_folder='templates',
                 static_folder='static')
-    
+
+    # Request logging middleware
+    @app.before_request
+    def log_request_start():
+        """Log the start of each request"""
+        g.request_start_time = time.time()
+        g.session_id = f"{time.time()}_{id(g)}"  # Simple session ID for tracking
+
+    @app.after_request
+    def log_request_end(response):
+        """Log the completion of each request"""
+        if hasattr(g, 'request_start_time'):
+            duration_ms = (time.time() - g.request_start_time) * 1000
+
+            # Skip logging for static files and health checks
+            if not request.path.startswith('/static') and request.path not in ['/favicon.ico']:
+                SecurityAudit.log_api_access(
+                    endpoint=request.endpoint or 'unknown',
+                    method=request.method,
+                    response_code=response.status_code,
+                    duration_ms=duration_ms,
+                    details={
+                        'path': request.path,
+                        'query_string': request.query_string.decode('utf-8') if request.query_string else '',
+                        'content_length': response.content_length,
+                        'response_content_type': response.content_type
+                    }
+                )
+
+        return response
+
     # Add CSP headers to allow source maps
     @app.after_request
     def add_security_headers(response):

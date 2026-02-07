@@ -32,7 +32,14 @@
   - Registros de usuarios
   - Actividades sospechosas
   - Errores de registro
-- ✅ **Archivo de log dedicado**: `security.log`
+- ✅ **Sistema de auditoría de base de datos**:
+  - Logging automático de todas las operaciones CRUD
+  - Captura de cambios con valores antes/después
+  - Trazabilidad completa de transacciones
+  - Información detallada de usuario y contexto
+- ✅ **Archivos de log dedicados**:
+  - `security.log`: Eventos de seguridad y autenticación
+  - `database.log`: Operaciones de base de datos y cambios de modelo
 
 ### 6. Headers de Seguridad HTTP
 - ✅ **Content Security Policy (CSP)**: Restringe fuentes de contenido
@@ -45,6 +52,110 @@
 - ✅ **Hash de contraseñas**: Usando bcrypt con salt automático
 - ✅ **Validación de redirecciones**: URLs de redirección validadas
 - ✅ **Gestión de sesiones**: Flask-Login configurado correctamente
+
+## Sistema de Auditoría de Base de Datos
+
+### Arquitectura del Sistema de Logging
+
+El sistema implementa **auditoría completa de todas las operaciones de base de datos** mediante múltiples capas de logging:
+
+#### 🏗️ **Componentes del Sistema**
+
+1. **Database Audit Service** (`app/services/database_audit_service.py`)
+   - SQLAlchemy event listeners automáticos
+   - Captura de operaciones CRUD en tiempo real
+   - Logging estructurado JSON con metadatos completos
+
+2. **Security Audit Service** (`app/services/security_audit_service.py`)
+   - Logging de eventos de seguridad y autenticación
+   - Métodos para logging de cambios de modelo
+   - Integración con operaciones de negocio
+
+3. **Inicialización Automática** (`app/extensions.py`)
+   - Configuración automática de listeners al iniciar la aplicación
+   - Logging de transacciones y commits
+
+#### 📊 **Tipos de Operaciones Auditadas**
+
+- **Operaciones CRUD**: CREATE, UPDATE, DELETE en todas las tablas
+- **Transacciones**: Commits, rollbacks y operaciones SQL ejecutadas
+- **Autenticación**: Login/logout, intentos fallidos, creación de usuarios
+- **Permisos**: Verificaciones de acceso, denegaciones
+- **Cambios de Modelo**: Valores antes/después en modificaciones
+
+#### 📋 **Información Registrada por Operación**
+
+Cada operación registra automáticamente:
+- **Identificación**: Usuario, IP, User-Agent, Session ID, timestamp
+- **Operación**: Tipo (CREATE/UPDATE/DELETE), tabla afectada, ID del registro
+- **Cambios**: Campos modificados, valores anteriores/nuevos
+- **Contexto**: Servicio que ejecutó la operación, acción de negocio
+- **Metadatos**: Duración, código de respuesta, endpoint
+
+#### 📁 **Archivos de Log y Formatos**
+
+**Database Log** (`database.log`):
+```json
+{
+  "timestamp": "2026-01-26T22:39:33.422384",
+  "level": "INFO",
+  "user": "[system]",
+  "operation": "CREATE",
+  "table": "vehicle",
+  "record_id": "5",
+  "action": "vehicle_created",
+  "new_values": {
+    "license_plate": "AUDIT-001",
+    "make": "TestMake",
+    "model": "TestModel",
+    "year": 2023
+  }
+}
+```
+
+**Security Log** (`security.log`):
+```json
+{
+  "timestamp": "2026-01-26T22:39:33.422384",
+  "level": "INFO",
+  "user": "[user_123]",
+  "event": "authentication_success",
+  "details": {
+    "username": "admin",
+    "ip": "192.168.1.100",
+    "user_agent": "Mozilla/5.0..."
+  }
+}
+```
+
+#### 🔍 **Herramientas de Análisis y Monitoreo**
+
+```bash
+# Análisis de logs de seguridad
+python scripts/analyze_security_logs.py --summary
+python scripts/analyze_security_logs.py --user-activity admin
+python scripts/analyze_security_logs.py --failed-logins
+python scripts/analyze_security_logs.py --suspicious
+python scripts/analyze_security_logs.py --api-performance
+
+# Prueba del sistema de logging
+python scripts/test_database_logging.py
+```
+
+#### 🛡️ **Beneficios de Seguridad**
+
+- **Trazabilidad Completa**: Todas las operaciones quedan registradas con contexto completo
+- **Detección de Anomalías**: Identificación automática de actividades sospechosas
+- **Cumplimiento Normativo**: Requisitos de auditoría y retención de logs
+- **Análisis Forense**: Capacidad de reconstruir eventos y cambios
+- **Monitoreo Continuo**: Alertas automáticas para eventos críticos
+
+#### ⚙️ **Configuración y Mantenimiento**
+
+- **Rotación de Logs**: Los logs se rotan automáticamente por tamaño y fecha
+- **Compresión**: Logs antiguos se comprimen para ahorrar espacio
+- **Retención**: Configurable según políticas de la organización
+- **Monitoreo**: Alertas para eventos de alta severidad
 
 ## Configuración de Producción
 

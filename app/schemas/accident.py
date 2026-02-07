@@ -1,7 +1,6 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
-from decimal import Decimal
 from ..models.accident import AccidentSeverity, AccidentStatus
 
 class AccidentBase(BaseModel):
@@ -19,8 +18,8 @@ class AccidentBase(BaseModel):
     police_report_number: Optional[str] = Field(None, max_length=50)
     insurance_claim_number: Optional[str] = Field(None, max_length=50)
     damage_description: Optional[str] = None
-    estimated_repair_cost: Optional[Decimal] = Field(None, ge=0)
-    actual_repair_cost: Optional[Decimal] = Field(None, ge=0)
+    estimated_repair_cost: Optional[float] = Field(None, ge=0)
+    actual_repair_cost: Optional[float] = Field(None, ge=0)
     repair_provider: Optional[str] = Field(None, max_length=100)
     repair_start_date: Optional[datetime] = None
     repair_completion_date: Optional[datetime] = None
@@ -36,8 +35,8 @@ class AccidentUpdate(BaseModel):
     status: Optional[AccidentStatus] = None
     insurance_claim_number: Optional[str] = Field(None, max_length=50)
     damage_description: Optional[str] = None
-    estimated_repair_cost: Optional[Decimal] = Field(None, ge=0)
-    actual_repair_cost: Optional[Decimal] = Field(None, ge=0)
+    estimated_repair_cost: Optional[float] = Field(None, ge=0)
+    actual_repair_cost: Optional[float] = Field(None, ge=0)
     repair_provider: Optional[str] = Field(None, max_length=100)
     repair_start_date: Optional[datetime] = None
     repair_completion_date: Optional[datetime] = None

@@ -22,6 +22,10 @@ def init_extensions(app):
     limiter.init_app(app)
     csrf.init_app(app)
 
+    # Initialize database auditing
+    from app.services.database_audit_service import init_database_logging
+    init_database_logging(app)
+
     # Configure login manager
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Por favor inicia sesión para acceder a esta página.'

@@ -10,6 +10,7 @@ from app.models.user import UserRole
 from app.utils.error_helpers import log_exception
 from app.services.reservation_service import ReservationService as RService
 from urllib.parse import urlencode
+from app.core.permissions import has_role, has_permission
 
 reservation_bp = Blueprint('reservations', __name__)
 
@@ -219,13 +220,9 @@ def request_change(reservation_id):
 
 @reservation_bp.route('/force', methods=['POST'])
 @login_required
+@has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER)
 def force_reservation():
     """Force creating/updating a reservation bypassing overlap checks - restricted to admins/managers."""
-    # Check permission
-    if current_user.role not in [UserRole.ADMIN, UserRole.FLEET_MANAGER]:
-        flash('Acceso denegado para forzar reservas', 'error')
-        return redirect(url_for('reservations.list_reservations'))
-
     # Read hidden fields sent from conflict form
     try:
         vehicle_id = int(request.form.get('vehicle_id'))
