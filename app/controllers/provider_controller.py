@@ -2,6 +2,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from app.services.provider_service import ProviderService
+from app.utils.organization_access import organization_protect
+from app.models.provider import Provider
+from app.services.organization_service import OrganizationService
 from app.models.provider import ProviderType
 from app.models.user import UserRole
 from app.utils.error_helpers import log_exception
@@ -29,13 +32,19 @@ def list_providers():
     base_list_url = url_for('providers.list_providers')
     preserved_qs = urlencode(preserved_args) if preserved_args else ''
 
-    all_providers = ProviderService.get_all_providers()
+    # Get user's organization unit
+    organization_unit_id = None
+    if current_user.driver and current_user.driver.organization_unit_id:
+        organization_unit_id = current_user.driver.organization_unit_id
+
+    all_providers = ProviderService.get_all_providers(organization_unit_id=organization_unit_id)
     providers, pagination = paginate_list(all_providers, page=page, per_page=per_page)
     return render_template('providers/list.html', providers=providers, pagination=pagination, base_list_url=base_list_url, preserved_qs=preserved_qs)
 
 @provider_bp.route('/<int:provider_id>')
 @login_required
 @has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER)
+@organization_protect(model=Provider, id_arg='provider_id')
 def view_provider(provider_id):
     """View provider details"""
     provider = ProviderService.get_provider_by_id(provider_id)
@@ -52,6 +61,16 @@ def create_provider():
     """Create new provider"""
     if request.method == 'POST':
         try:
+            # Get user's organization unit
+            organization_unit_id = None
+            if current_user.driver and current_user.driver.organization_unit_id:
+                organization_unit_id = current_user.driver.organization_unit_id
+            
+            # Allow override from form if user has permission
+            form_org_id = request.form.get('organization_unit_id')
+            if form_org_id:
+                organization_unit_id = int(form_org_id)
+
             provider = ProviderService.create_provider(
                 name=request.form.get('name'),
                 provider_type=ProviderType(request.form.get('provider_type')),
@@ -60,7 +79,8 @@ def create_provider():
                 email=request.form.get('email'),
                 address=request.form.get('address'),
                 website=request.form.get('website'),
-                notes=request.form.get('notes')
+                notes=request.form.get('notes'),
+                organization_unit_id=organization_unit_id
             )
             flash(f'Proveedor {provider.name} creado exitosamente', 'success')
             return redirect(url_for('providers.view_provider', provider_id=provider.id))
@@ -70,11 +90,13 @@ def create_provider():
             err_id = log_exception(e, __name__)
             flash(f'Error al crear proveedor (id={err_id})', 'error')
 
-    return render_template('providers/form.html', provider_types=ProviderType)
+    organizations = OrganizationService.get_all_organizations()
+    return render_template('providers/form.html', provider_types=ProviderType, organizations=organizations)
 
 @provider_bp.route('/<int:provider_id>/edit', methods=['GET', 'POST'])
 @login_required
 @has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER)
+@organization_protect(model=Provider, id_arg='provider_id')
 def edit_provider(provider_id):
     """Edit provider"""
     provider = ProviderService.get_provider_by_id(provider_id)
@@ -84,17 +106,23 @@ def edit_provider(provider_id):
 
     if request.method == 'POST':
         try:
-            ProviderService.update_provider(
-                provider_id,
-                name=request.form.get('name'),
-                provider_type=ProviderType(request.form.get('provider_type')),
-                contact_person=request.form.get('contact_person'),
-                phone=request.form.get('phone'),
-                email=request.form.get('email'),
-                address=request.form.get('address'),
-                website=request.form.get('website'),
-                notes=request.form.get('notes')
-            )
+            update_data = {
+                'name': request.form.get('name'),
+                'provider_type': ProviderType(request.form.get('provider_type')),
+                'contact_person': request.form.get('contact_person'),
+                'phone': request.form.get('phone'),
+                'email': request.form.get('email'),
+                'address': request.form.get('address'),
+                'website': request.form.get('website'),
+                'notes': request.form.get('notes')
+            }
+            
+            # Handle organization_unit_id if provided
+            form_org_id = request.form.get('organization_unit_id')
+            if form_org_id:
+                update_data['organization_unit_id'] = int(form_org_id)
+            
+            ProviderService.update_provider(provider_id, **update_data)
             flash('Proveedor actualizado exitosamente', 'success')
             return redirect(url_for('providers.view_provider', provider_id=provider_id))
         except ValueError as e:
@@ -103,6 +131,9 @@ def edit_provider(provider_id):
             err_id = log_exception(e, __name__)
             flash(f'Error al actualizar proveedor (id={err_id})', 'error')
 
+    organizations = OrganizationService.get_all_organizations()
+    return render_template('providers/edit.html', provider=provider, provider_types=ProviderType, organizations=organizations)
+
     return render_template('providers/form.html',
                          provider=provider,
                          provider_types=ProviderType)
@@ -110,6 +141,7 @@ def edit_provider(provider_id):
 @provider_bp.route('/<int:provider_id>/delete', methods=['POST'])
 @login_required
 @has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER)
+@organization_protect(model=Provider, id_arg='provider_id')
 def delete_provider(provider_id):
     """Delete provider"""
     try:

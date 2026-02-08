@@ -22,6 +22,8 @@ class OrganizationUnit(db.Model):
     # Relationships
     vehicles = relationship("Vehicle", back_populates="organization_unit")
     drivers = relationship("Driver", back_populates="organization_unit")
+    providers = relationship("Provider", back_populates="organization_unit")
+    users = relationship("User", back_populates="organization_unit")
     parent = relationship("OrganizationUnit", remote_side=[id])
     child_units = relationship("OrganizationUnit", back_populates="parent")
     reservations = relationship("Reservation", back_populates="organization_unit")

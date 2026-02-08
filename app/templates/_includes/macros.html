@@ -15,7 +15,7 @@
 
 {%- macro pagination_controls(pagination, base_list_url='', preserved_qs='', items_count=0, aria_label='Paginación', show_per_page_form=False) -%}
 {%- if pagination %}
-<div class="d-flex justify-content-between align-items-center mt-3">
+<div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
   <div class="d-flex align-items-center gap-3">
     <div class="text-muted small">
       Mostrando {{ pagination.page * pagination.per_page - (pagination.per_page - 1) if pagination.total>0 else 0 }} - {{ (pagination.page-1)*pagination.per_page + items_count }} de {{ pagination.total }} registros
@@ -40,13 +40,13 @@
     {%- endif %}
   </div>
   <nav aria-label="{{ aria_label }}">
-    <ul class="pagination mb-0">
+    <ul class="pagination pagination-sm mb-0">
       {% set start = pagination.page - 2 if pagination.page - 2 > 0 else 1 %}
       {% set end = pagination.page + 2 if pagination.page + 2 <= pagination.pages else pagination.pages %}
 
       {% if pagination.has_prev %}
       <li class="page-item">
-        <a class="page-link" href="{{ base_list_url }}{% if preserved_qs %}?{{ preserved_qs }}&{% else %}?{% endif %}page={{ pagination.prev_num }}" aria-label="Anterior">
+        <a class="page-link" href="{{ base_list_url }}{% if preserved_qs %}?{{ preserved_qs }}&{% else %}?{% endif %}page={{ pagination.prev_num }}" aria-label="Anterior" title="Página anterior">
           <span aria-hidden="true">&laquo;</span>
         </a>
       </li>
@@ -56,13 +56,13 @@
 
       {% for p in range(start, end+1) %}
       <li class="page-item {% if p == pagination.page %}active{% endif %}">
-        <a class="page-link" href="{{ base_list_url }}{% if preserved_qs %}?{{ preserved_qs }}&{% else %}?{% endif %}page={{ p }}">{{ p }}</a>
+        <a class="page-link" href="{{ base_list_url }}{% if preserved_qs %}?{{ preserved_qs }}&{% else %}?{% endif %}page={{ p }}" title="Ir a página {{ p }}">{{ p }}</a>
       </li>
       {% endfor %}
 
       {% if pagination.has_next %}
       <li class="page-item">
-        <a class="page-link" href="{{ base_list_url }}{% if preserved_qs %}?{{ preserved_qs }}&{% else %}?{% endif %}page={{ pagination.next_num }}" aria-label="Siguiente">
+        <a class="page-link" href="{{ base_list_url }}{% if preserved_qs %}?{{ preserved_qs }}&{% else %}?{% endif %}page={{ pagination.next_num }}" aria-label="Siguiente" title="Página siguiente">
           <span aria-hidden="true">&raquo;</span>
         </a>
       </li>

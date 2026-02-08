@@ -2,14 +2,18 @@
 from typing import List, Optional
 from app.extensions import db
 from app.models.provider import Provider, ProviderType
+from app.utils.audit_decorators import audit_model_change, audit_operation
 
 class ProviderService:
     """Service for provider operations"""
 
     @staticmethod
-    def get_all_providers() -> List[Provider]:
-        """Get all active providers"""
-        return Provider.query.filter_by(is_active=True).order_by(Provider.name).all()
+    def get_all_providers(organization_unit_id: Optional[int] = None) -> List[Provider]:
+        """Get all active providers, optionally filtered by organization unit"""
+        query = Provider.query.filter_by(is_active=True)
+        if organization_unit_id:
+            query = query.filter_by(organization_unit_id=organization_unit_id)
+        return query.order_by(Provider.name).all()
 
     @staticmethod
     def get_providers_by_type(provider_type: ProviderType) -> List[Provider]:
@@ -22,10 +26,12 @@ class ProviderService:
         return Provider.query.filter_by(id=provider_id, is_active=True).first()
 
     @staticmethod
+    @audit_model_change('Provider', 'CREATE')
     def create_provider(name: str, provider_type: ProviderType,
                        contact_person: Optional[str] = None, phone: Optional[str] = None,
                        email: Optional[str] = None, address: Optional[str] = None,
-                       website: Optional[str] = None, notes: Optional[str] = None) -> Provider:
+                       website: Optional[str] = None, notes: Optional[str] = None,
+                       organization_unit_id: Optional[int] = None) -> Provider:
         """Create a new provider"""
         # Validate required fields
         if not name or not name.strip():
@@ -39,7 +45,8 @@ class ProviderService:
             email=email,
             address=address,
             website=website,
-            notes=notes
+            notes=notes,
+            organization_unit_id=organization_unit_id
         )
 
         db.session.add(provider)
@@ -49,6 +56,7 @@ class ProviderService:
         return provider
 
     @staticmethod
+    @audit_model_change('Provider', 'UPDATE')
     def update_provider(provider_id: int, **kwargs) -> Optional[Provider]:
         """Update provider information"""
         provider = ProviderService.get_provider_by_id(provider_id)
@@ -72,6 +80,7 @@ class ProviderService:
         return provider
 
     @staticmethod
+    @audit_model_change('Provider', 'DELETE')
     def delete_provider(provider_id: int) -> bool:
         """Soft delete a provider"""
         provider = ProviderService.get_provider_by_id(provider_id)

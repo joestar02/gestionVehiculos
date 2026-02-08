@@ -15,8 +15,11 @@ Aplicación web empresarial completa para la gestión integral de flotas de veh�
 - **[API Implementation](docs/API_IMPLEMENTATION.md)** - Detalles técnicos
 - **Swagger UI**: http://localhost:8000/docs (cuando API está ejecutándose)
 
-### Seguridad y Auditoría
+### Organizaciones y Control de Acceso
+- **[Organization Unit Association](docs/ORGANIZATION_UNIT_ASSOCIATION.md)** - Asociación de recursos con unidades organizativas
 - **[Security Guide](docs/SECURITY.md)** - Políticas de seguridad
+
+### Auditoría y Logging
 - **[Audit & Logging](docs/auditoria_logging.md)** - Sistema de auditoría completo
 
 ### Diseño y Arquitectura
@@ -73,12 +76,13 @@ API Docs: http://localhost:8000/docs
 
 ## ✨ Key Features
 
-- ✅ **Vehicle Management** - Complete CRUD with documentation (ITV, insurance, taxes)
-- ✅ **Driver Management** - Profiles with accident and fine history
+- ✅ **Vehicle Management** - Complete CRUD with organization unit association
+- ✅ **Driver Management** - Profiles with accident and fine history, org unit binding
+- ✅ **Provider Management** - Service provider management with org unit support
 - ✅ **Reservation System** - Complete with conflict detection
 - ✅ **Maintenance Tracking** - Preventive and corrective maintenance
 - ✅ **Driver Assignments** - Manage driver-vehicle associations
-- ✅ **Provider Management** - Service provider management
+- ✅ **Organization Units** - Hierarchical structure with resource isolation
 - ✅ **Granular Permissions** - 26 specific permissions across 9 modules
 - ✅ **Complete Audit System** - Database and security logging with full traceability
 - ✅ **REST API** - Modern FastAPI with automatic Swagger documentation

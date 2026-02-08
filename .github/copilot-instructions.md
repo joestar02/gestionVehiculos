@@ -28,11 +28,13 @@ Purpose: Short, actionable guidance to help AI coding agents be productive in th
     - Sample users: Run `python scripts/create_sample_users.py` to create test users with different roles
     - Test credentials: admin/admin123 (ADMIN - Full access), fleet_manager/fleet123 (FLEET_MANAGER - Fleet management), ops_manager/ops123 (OPERATIONS_MANAGER - Operations), conductor1/driver123 (DRIVER - Limited access), visor/view123 (VIEWER - Read-only)
     - Role permissions: Defined in app/core/permission_config.py with 26 granular permissions across 9 modules
-  - **Audit & logging system**: Comprehensive database and security logging.
+  - **Audit & logging system**: Comprehensive database and security logging using decorators.
     - Database logging: Automatic SQLAlchemy event listeners for all CRUD operations with before/after values
     - Security logging: Authentication, permissions, and business operations with full context
-    - Services: Use `SecurityAudit.log_model_change()` and `SecurityAudit.log_security_event()` in services
-    - Files: `app/services/security_audit_service.py`, `app/services/database_audit_service.py`
+    - Service audit logging: Use `@audit_model_change()` decorator for CREATE/UPDATE/DELETE operations
+    - Security events: Use `SecurityAudit.log_security_event()` in services for authentication and permission events
+    - Decorator usage: `@audit_model_change('ModelName', 'CREATE'|'UPDATE'|'DELETE')` on service methods
+    - Files: `app/utils/audit_decorators.py`, `app/services/security_audit_service.py`, `app/services/database_audit_service.py`
     - Logs: `security.log` (security events), `database.log` (database operations)
     - Testing: Run `python scripts/test_database_logging.py` to verify logging works
 
@@ -60,7 +62,7 @@ Purpose: Short, actionable guidance to help AI coding agents be productive in th
   - Register new blueprints in [app/main.py] and include API routers in [app/api/api.py] as appropriate.
   - Add permission checks using `@has_role()` or `@has_permission()` decorators for new endpoints.
   - Update [app/core/permission_config.py] if adding new permissions or roles.
-  - **Add audit logging**: Use `SecurityAudit.log_model_change()` for database operations and `SecurityAudit.log_security_event()` for security events in service methods.
+  - **Add audit logging**: Use `@audit_model_change()` decorator from `app/utils/audit_decorators` on service methods for CREATE/UPDATE/DELETE operations. Use `SecurityAudit.log_security_event()` for authentication and permission-related events only.
   - Run `pytest` after changes and run `alembic` if DB model changes.
   - Test logging: Run `python scripts/test_database_logging.py` to verify audit logging works.
 

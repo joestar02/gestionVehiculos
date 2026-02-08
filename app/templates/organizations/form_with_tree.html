@@ -46,10 +46,8 @@
                     <div class="input-group mb-2">
                         <input type="text" id="search-org" class="form-control" placeholder="Buscar organización...">
                     </div>
-                    <div class="jstree-proton-container">
-                        <div id="org-tree" style="min-height: 200px; max-height: 300px; overflow-y: auto;">
-                            <!-- Tree will be loaded here -->
-                        </div>
+                    <div id="org-tree" class="jstree-proton-container" style="min-height: 300px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                        <!-- Tree will be loaded here -->
                     </div>
                     <input type="hidden" id="parent_id" name="parent_id" value="{{ organization.parent_id if organization else '' }}">
                 </div>
@@ -83,134 +81,200 @@
 {% endblock %}
 
 {% block extra_css %}
-<!-- jsTree Proton Theme -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jstree@3.3.12/dist/themes/proton/style.min.css" />
+<!-- jsTree Proton Theme CSS - Latest version -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jstree@3.9.0/dist/themes/proton/style.min.css" />
 <style>
-/* Completely reset any conflicting styles */
+/* Container for the tree */
 .jstree-proton-container {
+    display: block;
+    width: 100%;
+    background-color: #ffffff;
     border: 1px solid #ddd;
     border-radius: 4px;
     padding: 10px;
-    background: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-/* Force Proton theme styles */
+/* Ensure proton theme applies to the tree */
 .jstree-proton-container .jstree {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
-    background: #fff !important;
-    color: #2c3e50 !important;
+    background-color: #ffffff;
+    color: #2c3e50;
+    font-size: 14px;
 }
 
 .jstree-proton-container .jstree-anchor {
-    line-height: 24px !important;
-    height: 24px !important;
-    color: #2c3e50 !important;
+    line-height: 24px;
+    color: #2c3e50;
 }
 
-.jstree-proton-container .jstree-anchor > .jstree-icon {
-    background-position: center !important;
-    margin-right: 5px !important;
-}
-
-.jstree-proton-container .jstree-anchor:hover, 
-.jstree-proton-container .jstree-anchor:focus {
-    background-color: #f1f5fd !important;
-    color: #2c3e50 !important;
+.jstree-proton-container .jstree-anchor:hover {
+    background-color: #f1f5fd;
 }
 
 .jstree-proton-container .jstree-clicked {
-    background: #e0eafc !important;
-    color: #2c3e50 !important;
-    border-radius: 2px !important;
-    box-shadow: none !important;
+    background-color: #e0eafc;
 }
 
 .jstree-proton-container .jstree-wholerow-clicked {
-    background: #e0eafc !important;
+    background-color: #e0eafc;
 }
 
-/* Ensure the tree is properly spaced */
-.jstree-proton-container .jstree-container-ul > .jstree-node {
-    margin-left: 0 !important;
+/* Icon sizing */
+.jstree-proton-container .jstree-icon {
+    width: 20px;
+    height: 20px;
 }
 
-/* Fix for icons */
-.jstree-proton-container .jstree-themeicon {
-    background-position: center !important;
+/* Proper spacing */
+.jstree-proton-container .jstree-ul {
+    padding-left: 18px;
+}
+
+.jstree-proton-container .jstree-text {
+    color: #2c3e50;
 }
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jstree@3.3.12/dist/jstree.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jstree@3.9.0/dist/jstree.min.js"></script>
 <script>
 $(document).ready(function() {
-    // Initialize the organization tree
+    // Prepare the tree data
+    var treeData = [
+        {
+            'id': 'none',
+            'parent': '#',
+            'text': 'Ninguna (Nivel superior)',
+            'icon': true
+        }
+    ];
+
+    {% for org in organizations %}
+    {% if not organization or org.id != organization.id %}
+    treeData.push({
+        'id': '{{ org.id }}',
+        'parent': '{{ org.parent_id if org.parent_id else 'none' }}',
+        'text': '{{ org.name }}',
+        'icon': true
+    });
+    {% endif %}
+    {% endfor %}
+
+    // Initialize the jstree with proton theme
     $('#org-tree').jstree({
         'core': {
-            'data': [
-                {
-                    'id': 'none',
-                    'text': 'Ninguna (Nivel superior)',
-                    'state': { 'selected': {{ 'true' if not organization or not organization.parent_id else 'false' }}},
-                    'icon': 'bi bi-house'
-                },
-                {% for org in organizations %}
-                {% if not organization or org.id != organization.id %}
-                {
-                    'id': '{{ org.id }}',
-                    'parent': '{{ org.parent_id if org.parent_id else 'none' }}',
-                    'text': '{{ org.name }}',
-                    'state': { 
-                        'selected': {{ 'true' if organization and organization.parent_id == org.id else 'false' }},
-                        'opened': true
-                    },
-                    'icon': 'bi bi-diagram-3'
-                }{% if not loop.last %},{% endif %}
-                {% endif %}
-                {% endfor %}
-            ],
+            'data': treeData,
+            'check_callback': true,
+            'multiple': false,
             'themes': {
                 'name': 'proton',
                 'responsive': true,
                 'dots': true,
                 'icons': true,
-                'stripes': true,
-                'theme': 'proton',
-                'url': 'https://cdn.jsdelivr.net/npm/jstree@3.3.12/dist/themes/proton/style.min.css'
-            },
-            'force_text': true,
-            'check_callback': true
-        },
-        'plugins': ['wholerow', 'types', 'search'],
-        'types': {
-            'default': {
-                'icon': 'bi bi-diagram-3'
+                'stripes': false
             }
         },
-        'search': {
-            'case_insensitive': true,
-            'show_only_matches': true
+        'plugins': ['wholerow', 'search']
+    });
+
+    // Set the parent selection on ready
+    $('#org-tree').on('ready.jstree', function() {
+        var tree = $(this).jstree(true);
+        var selectedParentId = $('#parent_id').val();
+        
+        if (selectedParentId) {
+            tree.select_node(selectedParentId);
+        } else {
+            tree.select_node('none');
         }
+        
+        tree.open_all();
     });
 
     // Handle node selection
     $('#org-tree').on('select_node.jstree', function(e, data) {
-        const node = data.node;
-        // Update the hidden input with the selected organization ID
+        var node = data.node;
         $('#parent_id').val(node.id === 'none' ? '' : node.id);
     });
 
-    // Expand all nodes when tree is ready
-    $('#org-tree').on('ready.jstree', function() {
-        $(this).jstree('open_all');
+    // Search functionality
+    var searchTimeout = false;
+    var searchValue = '';
+    
+    $('#search-org').keyup(function() {
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
+        }
+        searchValue = $(this).val();
+        
+        if (searchValue.length === 0) {
+            $('#org-tree').jstree(true).clear_search();
+        } else {
+            searchTimeout = setTimeout(function() {
+                $('#org-tree').jstree(true).search(searchValue);
+            }, 250);
+        }
     });
 
-    // Add search functionality
-    $('#search-org').on('keyup', function() {
-        const searchTerm = $(this).val();
-        $('#org-tree').jstree('search', searchTerm);
+    // Clear search on button clear
+    $('#search-org').on('input', function() {
+        if (!$(this).val()) {
+            $('#org-tree').jstree(true).clear_search();
+        }
+    });
+});
+</script>
+{% endblock %}
+
+    // Apply the proton theme class directly to the container
+    $('#org-tree').addClass('jstree-proton');
+
+    // Set the parent selection on ready
+    $('#org-tree').on('ready.jstree', function() {
+        var tree = $(this).jstree(true);
+        var selectedParentId = $('#parent_id').val();
+        
+        if (selectedParentId) {
+            tree.select_node(selectedParentId);
+        } else {
+            tree.select_node('none');
+        }
+        
+        tree.open_all();
+    });
+
+    // Handle node selection
+    $('#org-tree').on('select_node.jstree', function(e, data) {
+        var node = data.node;
+        $('#parent_id').val(node.id === 'none' ? '' : node.id);
+    });
+
+    // Search functionality
+    var searchTimeout = false;
+    var searchValue = '';
+    
+    $('#search-org').keyup(function() {
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
+        }
+        searchValue = $(this).val();
+        
+        if (searchValue.length === 0) {
+            $('#org-tree').jstree(true).clear_search();
+        } else {
+            searchTimeout = setTimeout(function() {
+                $('#org-tree').jstree(true).search(searchValue);
+            }, 250);
+        }
+    });
+
+    // Clear search on button clear (if using Bootstrap clear button)
+    $('#search-org').on('input', function() {
+        if (!$(this).val()) {
+            $('#org-tree').jstree(true).clear_search();
+        }
     });
 });
 </script>

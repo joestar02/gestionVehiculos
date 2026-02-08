@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - {{ organization.name }} - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1><i class="bi bi-grid-3x3-gap"></i> Dashboard: {{ organization.name }}</h1>
+        <p class="text-muted">Código: {{ organization.code or '—' }} — Responsable: {{ organization.manager_name or '—' }}</p>
+    </div>
+    <div>
+        <a href="{{ url_for('organizations.list_organizations') }}" class="btn btn-secondary">Volver al árbol</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-3">
+        <div class="card p-3">
+            <h5>Vehículos</h5>
+            <h3>{{ stats.total_vehicles }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3">
+            <h5>Proveedores</h5>
+            <h3>{{ stats.total_providers }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3">
+            <h5>Asignaciones activas</h5>
+            <h3>{{ stats.active_assignments }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3">
+            <h5>Cesiones</h5>
+            <h3>{{ stats.cesiones }}</h3>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Vehículos en la unidad</div>
+            <div class="card-body">
+                {% if vehicles %}
+                    <ul class="list-group">
+                        {% for v in vehicles %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ v.license_plate }}</strong> — {{ v.make }} {{ v.model }}
+                                <div class="text-muted small">Estado: {{ v.status.value }}</div>
+                            </div>
+                            <div>
+                                <a href="{{ url_for('vehicles.view_vehicle', vehicle_id=v.id) }}" class="btn btn-sm btn-outline-primary">Ver</a>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No hay vehículos asignados a esta unidad.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Proveedores</div>
+            <div class="card-body">
+                {% if providers %}
+                    <ul class="list-group">
+                        {% for p in providers %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ p.name }}</strong>
+                                <div class="text-muted small">Tipo: {{ p.provider_type.value }}</div>
+                            </div>
+                            <div>
+                                <a href="{{ url_for('providers.view_provider', provider_id=p.id) }}" class="btn btn-sm btn-outline-primary">Ver</a>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No hay proveedores asociados a esta unidad.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Cesiones (últimas)</div>
+            <div class="card-body">
+                {% if cesiones %}
+                    <ul class="list-group">
+                        {% for c in cesiones[:10] %}
+                        <li class="list-group-item">
+                            <strong>{{ c.vehicle.license_plate if c.vehicle else 'Vehículo' }}</strong>
+                            — {{ c.assignment_type.value }} — {{ c.start_date.strftime('%Y-%m-%d') }}
+                            <a href="{{ url_for('assignments.view_cesion', assignment_id=c.id) }}" class="btn btn-sm btn-outline-primary float-end">Ver</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No hay cesiones registradas para esta unidad.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Cumplimiento (por vehículo)</div>
+            <div class="card-body">
+                {% if compliance %}
+                    <ul class="list-group">
+                        {% for c in compliance[:10] %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong>{{ c.vehicle.license_plate }}</strong>
+                                    <div class="small text-muted">ITV: {{ c.itv.expiry_date.strftime('%Y-%m-%d') if c.itv else 'Sin ITV' }}</div>
+                                </div>
+                                <div>
+                                    <a href="{{ url_for('vehicles.view_vehicle', vehicle_id=c.vehicle.id) }}" class="btn btn-sm btn-outline-primary">Ver vehículo</a>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No hay datos de cumplimiento para esta unidad.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

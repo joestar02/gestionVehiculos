@@ -6,6 +6,7 @@ from app.utils.error_helpers import log_exception
 from app.services.vehicle_service import VehicleService
 from app.services.driver_service import DriverService
 from app.services.vehicle_transfer_service import VehicleTransferService
+from app.utils.organization_access import organization_protect
 from app.models.vehicle_assignment import VehicleAssignment, AssignmentType, PaymentStatus
 from urllib.parse import urlencode
 from app.utils.pagination import paginate_list
@@ -77,6 +78,7 @@ def create_transfer():
 
 @vehicle_transfer_bp.route('/<int:transfer_id>')
 @login_required
+@organization_protect(loader=VehicleTransferService.get_transfer_by_id, id_arg='transfer_id')
 def view_transfer(transfer_id):
     """View vehicle transfer details"""
     transfer = VehicleTransferService.get_transfer_by_id(transfer_id)
@@ -89,6 +91,7 @@ def view_transfer(transfer_id):
 @vehicle_transfer_bp.route('/<int:transfer_id>/edit', methods=['GET', 'POST'])
 @login_required
 @has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER)
+@organization_protect(loader=VehicleTransferService.get_transfer_by_id, id_arg='transfer_id')
 def edit_transfer(transfer_id):
     """Edit vehicle transfer"""
     transfer = VehicleTransferService.get_transfer_by_id(transfer_id)
@@ -134,6 +137,7 @@ def edit_transfer(transfer_id):
 @vehicle_transfer_bp.route('/<int:transfer_id>/delete', methods=['POST'])
 @login_required
 @has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER)
+@organization_protect(loader=VehicleTransferService.get_transfer_by_id, id_arg='transfer_id')
 def delete_transfer(transfer_id):
     """Delete vehicle transfer"""
     try:

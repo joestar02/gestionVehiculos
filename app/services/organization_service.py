@@ -42,6 +42,22 @@ class OrganizationService:
         return OrganizationUnit.query.filter_by(parent_id=parent_id, is_active=True).order_by(
             OrganizationUnit.name
         ).all()
+
+    @staticmethod
+    def get_organizations_with_levels() -> List[OrganizationUnit]:
+        """Return all active organizations annotated with a `level` attribute
+        representing depth in the tree (0 = root). This is useful for
+        rendering select dropdowns ordered by hierarchy.
+        """
+        all_orgs = OrganizationService.get_all_organizations()
+
+        def build(level_list, parent_id=None, level=0):
+            for org in [o for o in level_list if o.parent_id == parent_id]:
+                org.level = level
+                yield org
+                yield from build(level_list, parent_id=org.id, level=level+1)
+
+        return list(build(all_orgs, parent_id=None, level=0))
     
     @staticmethod
     def create_organization(name: str, code: str, description: Optional[str] = None,

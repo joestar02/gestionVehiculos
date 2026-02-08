@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.full_name or user.username }} - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1>
+            <i class="bi bi-person-badge"></i>
+            {{ user.full_name or user.username }}
+            <small class="text-muted ms-2">
+                {% if user.role.value == 'admin' %}
+                    <span class="badge bg-danger">Administrador</span>
+                {% elif user.role.value == 'fleet_manager' %}
+                    <span class="badge bg-primary">Gestor de Flota</span>
+                {% elif user.role.value == 'operations_manager' %}
+                    <span class="badge bg-success">Gestor de Operaciones</span>
+                {% elif user.role.value == 'driver' %}
+                    <span class="badge bg-info">Conductor</span>
+                {% elif user.role.value == 'viewer' %}
+                    <span class="badge bg-secondary">Observador</span>
+                {% endif %}
+                &nbsp;•&nbsp;{{ user.organization_unit.name if user.organization_unit else 'Sin unidad' }}
+            </small>
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Información del Usuario</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Nombre de Usuario</label>
+                        <p><strong>{{ user.username }}</strong></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Email</label>
+                        <p><a href="mailto:{{ user.email }}"><i class="bi bi-envelope"></i> {{ user.email }}</a></p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Nombre</label>
+                        <p>{{ user.first_name or '<em class="text-muted">No especificado</em>'|safe }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Apellido</label>
+                        <p>{{ user.last_name or '<em class="text-muted">No especificado</em>'|safe }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Rol</label>
+                        <p>
+                            {% if user.role.value == 'admin' %}
+                                <span class="badge bg-danger">Administrador</span>
+                            {% elif user.role.value == 'fleet_manager' %}
+                                <span class="badge bg-primary">Gestor de Flota</span>
+                            {% elif user.role.value == 'operations_manager' %}
+                                <span class="badge bg-success">Gestor de Operaciones</span>
+                            {% elif user.role.value == 'driver' %}
+                                <span class="badge bg-info">Conductor</span>
+                            {% elif user.role.value == 'viewer' %}
+                                <span class="badge bg-secondary">Observador</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Estado</label>
+                        <p>
+                            {% if user.is_active %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle"></i> Activo</span>
+                            {% else %}
+                                <span class="badge bg-warning"><i class="bi bi-exclamation-circle"></i> Inactivo</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Último acceso</label>
+                        <p>
+                            {% if user.last_login %}
+                                {{ user.last_login.strftime('%d/%m/%Y %H:%M') }}
+                            {% else %}
+                                <em class="text-muted">Nunca ha accedido</em>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Creado el</label>
+                        <p>{{ user.created_at.strftime('%d/%m/%Y %H:%M') if user.created_at else 'N/A' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Acciones</h5>
+            </div>
+            <div class="card-body d-flex flex-column gap-2">
+                <a href="{{ url_for('users.edit_user', user_id=user.id) }}" class="btn btn-warning">
+                    <i class="bi bi-pencil"></i> Editar Usuario
+                </a>
+                
+                {% if user.id != current_user.id %}
+                    {% if user.is_active %}
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deactivateModal">
+                        <i class="bi bi-lock"></i> Desactivar
+                    </button>
+                    {% else %}
+                    <form action="{{ url_for('users.activate_user', user_id=user.id) }}" method="POST">
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-unlock"></i> Activar
+                        </button>
+                    </form>
+                    {% endif %}
+                {% else %}
+                <button type="button" class="btn btn-secondary" disabled>
+                    <i class="bi bi-lock"></i> Tu propia cuenta
+                </button>
+                {% endif %}
+                
+                <a href="{{ url_for('users.list_users') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver a la Lista
+                </a>
+            </div>
+        </div>
+        
+        {% if user.role.value == 'admin' %}
+        <div class="card mt-3">
+            <div class="card-header bg-danger">
+                <h5 class="mb-0 text-white">
+                    <i class="bi bi-shield-exclamation"></i> Administrador
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-0 small">
+                    Este usuario tiene acceso total al sistema y puede realizar cualquier acción.
+                </p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Deactivate Modal -->
+<div class="modal fade" id="deactivateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Desactivar Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas desactivar a <strong>{{ user.username }}</strong>?</p>
+                <p class="text-muted small">El usuario no podrá acceder al sistema, pero sus datos se conservarán.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form action="{{ url_for('users.deactivate_user', user_id=user.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-lock"></i> Desactivar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

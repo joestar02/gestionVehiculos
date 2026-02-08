@@ -30,6 +30,9 @@
         <dt class="col-sm-4">Sitio web</dt>
         <dd class="col-sm-8">{% if provider.website %}<a href="{{ provider.website }}" target="_blank">{{ provider.website }}</a>{% else %}-{% endif %}</dd>
 
+        <dt class="col-sm-4">Unidad Organizativa</dt>
+        <dd class="col-sm-8">{{ provider.organization_unit.name if provider.organization_unit else '-' }}</dd>
+
         <dt class="col-sm-4">Activo</dt>
         <dd class="col-sm-8">{{ 'Sí' if provider.is_active else 'No' }}</dd>
       </dl>

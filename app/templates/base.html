@@ -88,6 +88,12 @@
                             <li><a class="dropdown-item" href="{{ url_for('compliance.compliance_dashboard') }}">
                                 <i class="bi bi-clipboard-check"></i> Cumplimiento
                             </a></li>
+                            {% if current_user.role.value == 'admin' %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('users.list_users') }}">
+                                <i class="bi bi-people"></i> Usuarios del Sistema
+                            </a></li>
+                            {% endif %}
                         </ul>
                     </li>
                     {% endif %}

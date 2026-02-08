@@ -30,6 +30,23 @@
                            value="{{ vehicle.vin if vehicle else '' }}" maxlength="17">
                 </div>
             </div>
+
+            {% if not vehicle %}
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <label for="organization_unit_id" class="form-label">Unidad de Organización *</label>
+                    <select class="form-select" id="organization_unit_id" name="organization_unit_id" required>
+                        <option value="">Seleccionar unidad...</option>
+                        {% for org in organizations %}
+                        <option value="{{ org.id }}">{{ org.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">El vehículo pertenecerá a esta unidad de organización</small>
+                </div>
+            </div>
+            {% else %}
+            <input type="hidden" name="organization_unit_id" value="{{ vehicle.organization_unit_id }}">
+            {% endif %}
             
             <div class="row">
                 <div class="col-md-4 mb-3">

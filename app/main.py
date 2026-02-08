@@ -97,6 +97,7 @@ def register_blueprints(app):
     from app.controllers.pickup_controller import pickup_bp
     from app.controllers.provider_controller import provider_bp
     from app.controllers.assignment_controller import assignment_bp
+    from app.controllers.user_controller import user_bp
     from app.controllers.main_controller import main_bp
 
     app.register_blueprint(main_bp)
@@ -110,6 +111,7 @@ def register_blueprints(app):
     app.register_blueprint(pickup_bp, url_prefix='/pickups')
     app.register_blueprint(provider_bp, url_prefix='/providers')
     app.register_blueprint(assignment_bp, url_prefix='/assignments')
+    app.register_blueprint(user_bp, url_prefix='/users')
 
 def register_error_handlers(app):
     """Register error handlers"""

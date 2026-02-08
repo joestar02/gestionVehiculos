@@ -33,6 +33,9 @@
             <a id="delete-org" href="#" class="btn btn-outline-danger" disabled>
                 <i class="bi bi-trash"></i> Eliminar
             </a>
+            <a id="view-org" href="#" class="btn btn-secondary ms-2" disabled>
+                <i class="bi bi-grid-3x3-gap"></i> Ver
+            </a>
         </div>
     </div>
 
@@ -74,15 +77,16 @@ $(document).ready(function() {
     $('#jstree').on('select_node.jstree', function(e, data) {
         const node = data.node;
         // Store selected node ID in a data attribute for easy access
-        $('#edit-org, #delete-org')
+        const orgId = node.id.replace('org_', '');
+        $('#edit-org, #delete-org, #view-org')
             .prop('disabled', false)
-            .data('org-id', node.id.replace('org_', ''));
+            .data('org-id', orgId);
     });
 
     // Handle create button
     $('#create-org').click(function(e) {
         e.preventDefault();
-        const selectedNode = $('#org-tree').jstree('get_selected', true)[0];
+        const selectedNode = $('#jstree').jstree('get_selected', true)[0];
         const parentId = selectedNode ? selectedNode.id.replace('org_', '') : '';
         window.location.href = "{{ url_for('organizations.create_organization') }}" + 
             (parentId ? '?parent_id=' + parentId : '');
@@ -104,10 +108,23 @@ $(document).ready(function() {
     // Handle delete button
     $('#delete-org').click(function(e) {
         e.preventDefault();
-        const selectedNode = $('#org-tree').jstree('get_selected', true)[0];
+        const selectedNode = $('#jstree').jstree('get_selected', true)[0];
         if (selectedNode && confirm('¿Está seguro de que desea eliminar esta organización?')) {
             window.location.href = "{{ url_for('organizations.delete_organization', org_id=0) }}"
                 .replace('/0', '/' + selectedNode.id.replace('org_', ''));
+        }
+    });
+
+    // Handle view/dashboard button
+    $('#view-org').click(function(e) {
+        e.preventDefault();
+        const selectedNode = $('#jstree').jstree('get_selected', true)[0];
+        if (selectedNode) {
+            const orgId = selectedNode.id.replace('org_', '');
+            // Replace the placeholder '/0' with the selected org id. The generated URL already includes '/dashboard'.
+            window.location.href = "{{ url_for('organizations.organization_dashboard', org_id=0) }}".replace('/0', '/' + orgId);
+        } else {
+            alert('Por favor, seleccione una unidad organizativa para ver el dashboard');
         }
     });
 

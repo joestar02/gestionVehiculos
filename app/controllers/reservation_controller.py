@@ -5,6 +5,7 @@ from datetime import datetime
 from app.services.reservation_service import ReservationService
 from app.services.vehicle_service import VehicleService
 from app.services.driver_service import DriverService
+from app.utils.organization_access import organization_protect
 from app.models.reservation import ReservationStatus
 from app.models.user import UserRole
 from app.utils.error_helpers import log_exception
@@ -74,6 +75,7 @@ def list_reservations():
 
 @reservation_bp.route('/<int:reservation_id>')
 @login_required
+@organization_protect(loader=ReservationService.get_reservation_by_id, id_arg='reservation_id')
 def view_reservation(reservation_id):
     """View reservation details"""
     reservation = ReservationService.get_reservation_by_id(reservation_id)
@@ -154,6 +156,7 @@ def create_reservation():
 
 @reservation_bp.route('/<int:reservation_id>/edit', methods=['GET', 'POST'])
 @login_required
+@organization_protect(loader=ReservationService.get_reservation_by_id, id_arg='reservation_id')
 def edit_reservation(reservation_id):
     """Edit reservation"""
     reservation = ReservationService.get_reservation_by_id(reservation_id)
@@ -211,6 +214,7 @@ def edit_reservation(reservation_id):
 
 @reservation_bp.route('/requests/<int:reservation_id>/change', methods=['POST'])
 @login_required
+@organization_protect(loader=ReservationService.get_reservation_by_id, id_arg='reservation_id')
 def request_change(reservation_id):
     """Placeholder: request change for a conflicting reservation (could notify owner)."""
     # For now, simply flash a message and redirect to the conflicting reservation
@@ -259,6 +263,7 @@ def force_reservation():
 
 @reservation_bp.route('/<int:reservation_id>/confirm', methods=['POST'])
 @login_required
+@organization_protect(loader=ReservationService.get_reservation_by_id, id_arg='reservation_id')
 def confirm_reservation(reservation_id):
     """Confirm a reservation"""
     reservation = ReservationService.confirm_reservation(reservation_id)
@@ -270,6 +275,7 @@ def confirm_reservation(reservation_id):
 
 @reservation_bp.route('/<int:reservation_id>/start', methods=['POST'])
 @login_required
+@organization_protect(loader=ReservationService.get_reservation_by_id, id_arg='reservation_id')
 def start_reservation(reservation_id):
     """Start a reservation"""
     try:
@@ -286,6 +292,7 @@ def start_reservation(reservation_id):
 
 @reservation_bp.route('/<int:reservation_id>/complete', methods=['POST'])
 @login_required
+@organization_protect(loader=ReservationService.get_reservation_by_id, id_arg='reservation_id')
 def complete_reservation(reservation_id):
     """Complete a reservation"""
     try:
@@ -303,6 +310,7 @@ def complete_reservation(reservation_id):
 
 @reservation_bp.route('/<int:reservation_id>/cancel', methods=['POST'])
 @login_required
+@organization_protect(loader=ReservationService.get_reservation_by_id, id_arg='reservation_id')
 def cancel_reservation(reservation_id):
     """Cancel a reservation"""
     cancellation_reason = request.form.get('cancellation_reason')

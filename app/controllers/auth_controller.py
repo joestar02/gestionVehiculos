@@ -34,6 +34,7 @@ def login():
         raw_password = request.form.get('password', '')
         remember = request.form.get('remember', False)
         ip_address = get_remote_address()
+        next_page = request.args.get('next')
 
         # Validate and sanitize input
         username = InputValidator.sanitize_string(raw_username, 50)
@@ -42,8 +43,7 @@ def login():
         if not username or not password:
             SecurityAudit.log_suspicious_activity(
                 "Login attempt with missing credentials",
-                {"username": username},
-                ip_address
+                {"username": username, "ip_address": ip_address}
             )
             flash('Por favor ingresa usuario y contraseña', 'error')
             return render_template('auth/login.html', has_forgot_password=has_forgot_password, has_register=has_register)
@@ -52,8 +52,7 @@ def login():
         if len(username) < 3:
             SecurityAudit.log_suspicious_activity(
                 "Login attempt with invalid username",
-                {"username": username},
-                ip_address
+                {"username": username, "ip_address": ip_address}
             )
             flash('Nombre de usuario no válido', 'error')
             return render_template('auth/login.html', has_forgot_password=has_forgot_password, has_register=has_register)
@@ -78,7 +77,6 @@ def login():
             )
 
             login_user(user, remember=remember)
-            next_page = request.args.get('next')
 
             # Validate redirect URL for security
             if next_page and not InputValidator.is_safe_url(next_page):
@@ -161,8 +159,7 @@ def register():
         if not email_valid:
             SecurityAudit.log_suspicious_activity(
                 "Registration attempt with invalid email",
-                {"email": raw_email},
-                ip_address
+                {"email": raw_email, "ip_address": ip_address}
             )
             flash(email_result, 'error')
             return render_template('auth/register.html')
@@ -173,8 +170,7 @@ def register():
         if not username_valid:
             SecurityAudit.log_suspicious_activity(
                 "Registration attempt with invalid username",
-                {"username": raw_username},
-                ip_address
+                {"username": raw_username, "ip_address": ip_address}
             )
             flash(username_result, 'error')
             return render_template('auth/register.html')
@@ -185,8 +181,7 @@ def register():
         if not password_valid:
             SecurityAudit.log_suspicious_activity(
                 "Registration attempt with weak password",
-                {"username": username, "password_length": len(raw_password)},
-                ip_address
+                {"username": username, "password_length": len(raw_password), "ip_address": ip_address}
             )
             flash(password_message, 'error')
             return render_template('auth/register.html')
@@ -195,8 +190,7 @@ def register():
         if password != password_confirm:
             SecurityAudit.log_suspicious_activity(
                 "Registration attempt with mismatched passwords",
-                {"username": username},
-                ip_address
+                {"username": username, "ip_address": ip_address}
             )
             flash('Las contraseñas no coinciden', 'error')
             return render_template('auth/register.html')
@@ -205,8 +199,7 @@ def register():
         if AuthService.get_user_by_username(username):
             SecurityAudit.log_suspicious_activity(
                 "Registration attempt with existing username",
-                {"username": username},
-                ip_address
+                {"username": username, "ip_address": ip_address}
             )
             flash('El nombre de usuario ya está en uso', 'error')
             return render_template('auth/register.html')
@@ -214,8 +207,7 @@ def register():
         if AuthService.get_user_by_email(email):
             SecurityAudit.log_suspicious_activity(
                 "Registration attempt with existing email",
-                {"email": email},
-                ip_address
+                {"email": email, "ip_address": ip_address}
             )
             flash('El correo electrónico ya está registrado', 'error')
             return render_template('auth/register.html')

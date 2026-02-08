@@ -31,6 +31,7 @@
                 <thead>
                     <tr>
                         <th>Nombre</th>                      
+                        <th>Unidad</th>
                         <th>Tipo</th>
                         <th>Contacto</th>
                         <th>Acciones</th>
@@ -42,6 +43,13 @@
                         <td>
                             <strong>{{ driver.full_name }}</strong>
                         </td>                        
+                        <td>
+                            {% if driver.organization_unit %}
+                                {{ driver.organization_unit.name }}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
                         <td>
                             <span class="badge bg-info">{{ driver.driver_type.value }}</span>
                         </td>                       

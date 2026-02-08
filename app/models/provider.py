@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, Enum
+from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, Enum, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -23,11 +23,13 @@ class Provider(db.Model):
     address = Column(Text)
     website = Column(String(200))
     notes = Column(Text)
+    organization_unit_id = Column(Integer, ForeignKey("organization_units.id"))
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
+    organization_unit = relationship("OrganizationUnit", back_populates="providers")
     maintenance_records = relationship("MaintenanceRecord", back_populates="provider")
 
     def __repr__(self):

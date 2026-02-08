@@ -64,6 +64,38 @@
                 </div>
             </div>
 
+            {% if not driver %}
+            <h5 class="mb-3 mt-4">Cuenta de Usuario</h5>
+            <div class="alert alert-info mb-3" role="alert">
+                <i class="bi bi-info-circle"></i>
+                <strong>Nota:</strong> Al crear un nuevo conductor, se generará automáticamente una cuenta de usuario que
+                podrá utilizar para acceder a la plataforma.
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="username" class="form-label">Nombre de Usuario *</label>
+                    <input type="text" class="form-control" id="username" name="username"
+                           placeholder="Ej: jgarcia" minlength="3" required>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="password" class="form-label">Contraseña *</label>
+                    <input type="password" class="form-control" id="password" name="password"
+                           placeholder="Mínimo 6 caracteres" minlength="6" required
+                           aria-describedby="password_help">
+                    <small id="password_help" class="form-text text-muted">
+                        Mínimo 6 caracteres
+                    </small>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="password_confirm" class="form-label">Confirmar Contraseña *</label>
+                    <input type="password" class="form-control" id="password_confirm" name="password_confirm"
+                           placeholder="Repetir contraseña" minlength="6" required>
+                </div>
+            </div>
+            {% endif %}
+
             <h5 class="mb-3 mt-4">Licencia de Conducir</h5>
             <div class="row">
                 <div class="col-md-6 mb-3">

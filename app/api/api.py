@@ -1,11 +1,12 @@
 from fastapi import APIRouter
-from .endpoints import vehicles, drivers, reservations, organizations, auth, pickups, maintenance, compliance
+from .endpoints import vehicles, drivers, reservations, organizations, auth, pickups, maintenance, compliance, providers
 
 api_router = APIRouter()
 
 api_router.include_router(auth.router, prefix="/auth", tags=["authentication"])
 api_router.include_router(vehicles.router, prefix="/vehicles", tags=["vehicles"])
 api_router.include_router(drivers.router, prefix="/drivers", tags=["drivers"])
+api_router.include_router(providers.router, prefix="/providers", tags=["providers"])
 api_router.include_router(reservations.router, prefix="/reservations", tags=["reservations"])
 api_router.include_router(pickups.router, prefix="/pickups", tags=["pickups"])
 api_router.include_router(organizations.router, prefix="/organizations", tags=["organizations"])

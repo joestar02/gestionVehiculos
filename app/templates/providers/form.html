@@ -43,10 +43,24 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
+                            <label for="organization_unit_id" class="form-label">Unidad Organizativa</label>
+                            <select class="form-select" id="organization_unit_id" name="organization_unit_id">
+                                <option value="">Seleccionar...</option>
+                                {% for org in organizations %}
+                                <option value="{{ org.id }}"
+                                        {{ 'selected' if provider and provider.organization_unit_id == org.id else '' }}>
+                                    {{ org.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
                             <label for="contact_person" class="form-label">Persona de Contacto</label>
                             <input type="text" class="form-control" id="contact_person" name="contact_person"
                                    value="{{ provider.contact_person if provider else '' }}">
                         </div>
+                    </div>
 
                         <div class="col-md-6 mb-3">
                             <label for="phone" class="form-label">Teléfono</label>

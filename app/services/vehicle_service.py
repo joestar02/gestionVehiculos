@@ -3,7 +3,8 @@ from typing import List, Optional
 from sqlalchemy import or_
 from app.extensions import db
 from app.models.vehicle import Vehicle, VehicleStatus, VehicleType, OwnershipType
-from app.services.security_audit_service import SecurityAudit
+from app.utils.audit_decorators import audit_model_change, audit_operation
+from sqlalchemy.exc import IntegrityError
 
 class VehicleService:
     """Service for vehicle operations"""
@@ -27,6 +28,7 @@ class VehicleService:
         return Vehicle.query.filter_by(license_plate=license_plate, is_active=True).first()
 
     @staticmethod
+    @audit_model_change('Vehicle', 'CREATE')
     def create_vehicle(license_plate: str, make: str, model: str, year: int,
                       vehicle_type: VehicleType, ownership_type: OwnershipType,
                       organization_unit_id: Optional[int] = None,
@@ -34,6 +36,16 @@ class VehicleService:
                       fuel_type: Optional[str] = None, fuel_capacity: Optional[int] = None,
                       notes: Optional[str] = None) -> Vehicle:
         """Create a new vehicle"""
+        # Normalize VIN: convert empty strings to None so UNIQUE(NULL) behavior applies
+        normalized_vin = None
+        if vin is not None:
+            try:
+                normalized_vin = vin.strip()
+            except Exception:
+                normalized_vin = vin
+            if normalized_vin == "":
+                normalized_vin = None
+
         vehicle = Vehicle(
             license_plate=license_plate,
             make=make,
@@ -43,154 +55,55 @@ class VehicleService:
             ownership_type=ownership_type,
             organization_unit_id=organization_unit_id,
             color=color,
-            vin=vin,
+            vin=normalized_vin,
             fuel_type=fuel_type,
             fuel_capacity=fuel_capacity,
             notes=notes
         )
 
         db.session.add(vehicle)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError as e:
+            # Roll back session to allow future transactions
+            db.session.rollback()
+            # Provide a friendlier error for duplicate VIN
+            if 'vin' in str(e).lower() or 'unique constraint' in str(e).lower():
+                raise ValueError('VIN already exists or invalid') from e
+            raise
+
         db.session.refresh(vehicle)
-
-        # Log vehicle creation
-        SecurityAudit.log_model_change(
-            model_class='Vehicle',
-            operation='CREATE',
-            instance_id=str(vehicle.id),
-            new_data={
-                'license_plate': vehicle.license_plate,
-                'make': vehicle.make,
-                'model': vehicle.model,
-                'year': vehicle.year,
-                'vehicle_type': vehicle.vehicle_type.value,
-                'ownership_type': vehicle.ownership_type.value,
-                'organization_unit_id': vehicle.organization_unit_id,
-                'color': vehicle.color,
-                'vin': vehicle.vin,
-                'fuel_type': vehicle.fuel_type,
-                'fuel_capacity': vehicle.fuel_capacity,
-                'status': vehicle.status.value
-            },
-            details={
-                'action': 'vehicle_created',
-                'created_by_service': 'VehicleService.create_vehicle'
-            }
-        )
-
         return vehicle
 
     @staticmethod
+    @audit_model_change('Vehicle', 'UPDATE')
     def update_vehicle(vehicle_id: int, **kwargs) -> Optional[Vehicle]:
         """Update vehicle information"""
         vehicle = VehicleService.get_vehicle_by_id(vehicle_id)
         if not vehicle:
             return None
 
-        # Capture old values for logging
-        old_data = {
-            'license_plate': vehicle.license_plate,
-            'make': vehicle.make,
-            'model': vehicle.model,
-            'year': vehicle.year,
-            'vehicle_type': vehicle.vehicle_type.value if vehicle.vehicle_type else None,
-            'ownership_type': vehicle.ownership_type.value if vehicle.ownership_type else None,
-            'organization_unit_id': vehicle.organization_unit_id,
-            'color': vehicle.color,
-            'vin': vehicle.vin,
-            'fuel_type': vehicle.fuel_type,
-            'fuel_capacity': vehicle.fuel_capacity,
-            'status': vehicle.status.value if vehicle.status else None,
-            'notes': vehicle.notes
-        }
-
         # Apply updates
-        updated_fields = []
         for key, value in kwargs.items():
             if hasattr(vehicle, key) and value is not None:
-                current_value = getattr(vehicle, key)
-                if current_value != value:
-                    setattr(vehicle, key, value)
-                    updated_fields.append(key)
+                setattr(vehicle, key, value)
 
-        if updated_fields:  # Only commit and log if something actually changed
-            db.session.commit()
-            db.session.refresh(vehicle)
-
-            # Capture new values
-            new_data = {
-                'license_plate': vehicle.license_plate,
-                'make': vehicle.make,
-                'model': vehicle.model,
-                'year': vehicle.year,
-                'vehicle_type': vehicle.vehicle_type.value if vehicle.vehicle_type else None,
-                'ownership_type': vehicle.ownership_type.value if vehicle.ownership_type else None,
-                'organization_unit_id': vehicle.organization_unit_id,
-                'color': vehicle.color,
-                'vin': vehicle.vin,
-                'fuel_type': vehicle.fuel_type,
-                'fuel_capacity': vehicle.fuel_capacity,
-                'status': vehicle.status.value if vehicle.status else None,
-                'notes': vehicle.notes
-            }
-
-            # Log vehicle update
-            SecurityAudit.log_model_change(
-                model_class='Vehicle',
-                operation='UPDATE',
-                instance_id=str(vehicle.id),
-                old_data=old_data,
-                new_data=new_data,
-                details={
-                    'action': 'vehicle_updated',
-                    'updated_fields': updated_fields,
-                    'updated_by_service': 'VehicleService.update_vehicle'
-                }
-            )
-        else:
-            db.session.rollback()  # No changes made
+        db.session.commit()
+        db.session.refresh(vehicle)
 
         return vehicle
 
     @staticmethod
+    @audit_model_change('Vehicle', 'DELETE')
     def delete_vehicle(vehicle_id: int) -> bool:
         """Soft delete a vehicle"""
         vehicle = VehicleService.get_vehicle_by_id(vehicle_id)
         if not vehicle:
             return False
 
-        # Capture vehicle data before deletion
-        vehicle_data = {
-            'id': vehicle.id,
-            'license_plate': vehicle.license_plate,
-            'make': vehicle.make,
-            'model': vehicle.model,
-            'year': vehicle.year,
-            'vehicle_type': vehicle.vehicle_type.value if vehicle.vehicle_type else None,
-            'ownership_type': vehicle.ownership_type.value if vehicle.ownership_type else None,
-            'status': vehicle.status.value if vehicle.status else None,
-            'is_active': vehicle.is_active
-        }
-
         vehicle.is_active = False
         db.session.commit()
 
-        # Log vehicle deletion
-        SecurityAudit.log_model_change(
-            model_class='Vehicle',
-            operation='DELETE',
-            instance_id=str(vehicle_id),
-            old_data=vehicle_data,
-            details={
-                'action': 'vehicle_soft_deleted',
-                'deletion_type': 'soft_delete',
-                'deleted_by_service': 'VehicleService.delete_vehicle'
-            }
-        )
-
-        return True
-        db.session.commit()
-        
         return True
     
     @staticmethod

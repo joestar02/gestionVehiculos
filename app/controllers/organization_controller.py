@@ -4,6 +4,15 @@ from flask_login import login_required, current_user
 from app.services.organization_service import OrganizationService
 from app.models.organization import OrganizationUnit
 from app.utils.error_helpers import log_exception
+from app.services.provider_service import ProviderService
+from app.services.vehicle_service import VehicleService
+from app.services.vehicle_assignment_service import VehicleAssignmentService
+from app.services.itv_service import ITVService
+from app.services.insurance_service import InsuranceService
+from app.services.tax_service import TaxService
+from app.models.vehicle_driver_association import VehicleDriverAssociation
+from app.models.user import UserRole
+from app.core.permissions import has_role
 
 organization_bp = Blueprint('organizations', __name__)
 
@@ -306,6 +315,63 @@ def view_organization(org_id):
         flash('Organización no encontrada', 'error')
         return redirect(url_for('organizations.list_organizations'))
     return render_template('organizations/detail.html', organization=org)
+
+
+@organization_bp.route('/<int:org_id>/dashboard')
+@login_required
+@has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER)
+def organization_dashboard(org_id):
+    """Dashboard view scoped to a single organization unit"""
+    org = OrganizationService.get_organization_by_id(org_id)
+    if not org:
+        flash('Organización no encontrada', 'error')
+        return redirect(url_for('organizations.list_organizations'))
+
+    # Vehicles assigned to this organization
+    vehicles = VehicleService.get_all_vehicles(organization_unit_id=org_id)
+
+    # Providers for this organization
+    providers = ProviderService.get_all_providers(organization_unit_id=org_id)
+
+    # Active driver assignments for vehicles in this org (join VehicleDriverAssociation -> Vehicle)
+    active_assignments = VehicleDriverAssociation.query.join(VehicleDriverAssociation.vehicle).filter(
+        VehicleDriverAssociation.is_active == True,
+        VehicleDriverAssociation.vehicle.has(organization_unit_id=org_id)
+    ).all()
+
+    # Cesiones / vehicle assignment records linked to this organization (organization_unit_id on VehicleAssignment)
+    all_cesiones = VehicleAssignmentService.get_all_assignments()
+    cesiones = [c for c in all_cesiones if c.organization_unit_id == org_id]
+
+    # Compliance: aggregate basic compliance status per vehicle
+    compliance = []
+    for v in vehicles:
+        latest_itv = ITVService.get_latest_itv(v.id)
+        latest_insurance = InsuranceService.get_latest_insurance(v.id) if hasattr(InsuranceService, 'get_latest_insurance') else None
+        pending_taxes = TaxService.get_taxes_by_vehicle(v.id) if hasattr(TaxService, 'get_taxes_by_vehicle') else []
+        compliance.append({
+            'vehicle': v,
+            'itv': latest_itv,
+            'insurance': latest_insurance,
+            'pending_taxes': pending_taxes
+        })
+
+    # Simple stats
+    stats = {
+        'total_vehicles': len(vehicles),
+        'total_providers': len(providers),
+        'active_assignments': len(active_assignments),
+        'cesiones': len(cesiones)
+    }
+
+    return render_template('organizations/dashboard.html',
+                         organization=org,
+                         vehicles=vehicles,
+                         providers=providers,
+                         active_assignments=active_assignments,
+                         cesiones=cesiones,
+                         compliance=compliance,
+                         stats=stats)
 
 def get_organizations_with_levels(organizations, parent_id=None, level=0):
     """Get organizations with hierarchy levels for select dropdown"""

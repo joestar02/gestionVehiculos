@@ -8,6 +8,7 @@ from app.services.driver_service import DriverService
 from app.services.organization_service import OrganizationService
 from app.services.vehicle_assignment_service import VehicleAssignmentService
 from app.models.vehicle_driver_association import VehicleDriverAssociation
+from app.utils.organization_access import organization_protect
 from app.models.vehicle_assignment import VehicleAssignment, AssignmentType, PaymentStatus
 from app.models.user import UserRole
 from app.extensions import db
@@ -101,6 +102,7 @@ def assign_vehicle():
 @assignment_bp.route('/unassign/<int:assignment_id>', methods=['POST'])
 @login_required
 @has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER)
+@organization_protect(model=VehicleDriverAssociation, id_arg='assignment_id')
 def unassign_vehicle(assignment_id):
     """Unassign vehicle from driver"""
     assignment = VehicleDriverAssociation.query.get(assignment_id)
@@ -134,13 +136,22 @@ def cesion_records():
     base_list_url = url_for('assignments.cesion_records')
     preserved_qs = urlencode(preserved_args) if preserved_args else ''
 
-    all_records = VehicleAssignmentService.get_all_assignments()
+    # Filter records by user's organization unless admin
+    if current_user.role == UserRole.ADMIN:
+        all_records = VehicleAssignmentService.get_all_assignments()
+    else:
+        user_driver = getattr(current_user, 'driver', None)
+        if user_driver and user_driver.organization_unit_id:
+            all_records = [r for r in VehicleAssignmentService.get_all_assignments() if getattr(r, 'organization_unit_id', None) == user_driver.organization_unit_id]
+        else:
+            all_records = []
     records, pagination = paginate_list(all_records, page=page, per_page=per_page)
     return render_template('assignments/cesiones.html', records=records, pagination=pagination, base_list_url=base_list_url, preserved_qs=preserved_qs)
 
 @assignment_bp.route('/cesiones/<int:assignment_id>')
 @login_required
 @has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER)
+@organization_protect(loader=VehicleAssignmentService.get_assignment_by_id, id_arg='assignment_id')
 def view_cesion(assignment_id):
     """View vehicle assignment details"""
     record = VehicleAssignmentService.get_assignment_by_id(assignment_id)
@@ -194,9 +205,18 @@ def create_cesion():
             err_id = log_exception(e, __name__)
             flash(f'Error al crear cesión (id={err_id})', 'error')
 
-    # Get all vehicles and drivers
-    vehicles = VehicleService.get_all_vehicles()
-    drivers = DriverService.get_active_drivers()
+    # Get all vehicles and drivers (filtered for non-admins)
+    if current_user.role == UserRole.ADMIN:
+        vehicles = VehicleService.get_all_vehicles()
+        drivers = DriverService.get_active_drivers()
+    else:
+        user_driver = getattr(current_user, 'driver', None)
+        if user_driver and user_driver.organization_unit_id:
+            vehicles = VehicleService.get_all_vehicles(organization_unit_id=user_driver.organization_unit_id)
+            drivers = DriverService.get_all_drivers(organization_unit_id=user_driver.organization_unit_id)
+        else:
+            vehicles = []
+            drivers = []
 
     return render_template('assignments/cesion_form.html',
                          vehicles=vehicles,
@@ -228,6 +248,7 @@ def pay_cesion(assignment_id):
 @assignment_bp.route('/cesiones/<int:assignment_id>/edit', methods=['GET', 'POST'])
 @login_required
 @has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER)
+@organization_protect(loader=VehicleAssignmentService.get_assignment_by_id, id_arg='assignment_id')
 def edit_cesion(assignment_id):
     """Edit vehicle assignment"""
 
@@ -270,6 +291,7 @@ def edit_cesion(assignment_id):
 @assignment_bp.route('/cesiones/<int:assignment_id>/delete', methods=['POST'])
 @login_required
 @has_role(UserRole.ADMIN, UserRole.FLEET_MANAGER, UserRole.OPERATIONS_MANAGER)
+@organization_protect(loader=VehicleAssignmentService.get_assignment_by_id, id_arg='assignment_id')
 def delete_cesion(assignment_id):
     """Delete vehicle assignment"""
     try:

@@ -3,6 +3,7 @@ from typing import List, Optional
 from sqlalchemy import or_
 from app.extensions import db
 from app.models.driver import Driver, DriverType, DriverStatus
+from app.utils.audit_decorators import audit_model_change, audit_operation
 
 class DriverService:
     """Service for driver operations"""
@@ -26,13 +27,15 @@ class DriverService:
         return Driver.query.filter_by(document_number=document_number, is_active=True).first()
     
     @staticmethod
+    @audit_model_change('Driver', 'CREATE')
     def create_driver(first_name: str, last_name: str, document_type: str,
                      document_number: str, driver_license_number: str,
                      driver_license_expiry, driver_type: DriverType,
                      organization_unit_id: Optional[int] = None,
                      email: Optional[str] = None, phone: Optional[str] = None,
-                     address: Optional[str] = None, notes: Optional[str] = None) -> Driver:
-        """Create a new driver"""
+                     address: Optional[str] = None, notes: Optional[str] = None,
+                     user_id: Optional[int] = None) -> Driver:
+        """Create a new driver, optionally linked to a user account"""
         # Validate required fields
         if not email or email.strip() == '':
             raise ValueError('El email es obligatorio')
@@ -68,7 +71,8 @@ class DriverService:
             phone=phone,
             address=address,
             notes=notes,
-            status=DriverStatus.ACTIVE
+            status=DriverStatus.ACTIVE,
+            user_id=user_id  # Link to the user account for this driver
         )
 
         try:
@@ -84,6 +88,7 @@ class DriverService:
             raise
     
     @staticmethod
+    @audit_model_change('Driver', 'UPDATE')
     def update_driver(driver_id: int, **kwargs) -> Optional[Driver]:
         """Update driver information"""
         driver = DriverService.get_driver_by_id(driver_id)
@@ -128,6 +133,7 @@ class DriverService:
             raise
     
     @staticmethod
+    @audit_model_change('Driver', 'DELETE')
     def delete_driver(driver_id: int) -> bool:
         """Soft delete a driver"""
         driver = DriverService.get_driver_by_id(driver_id)

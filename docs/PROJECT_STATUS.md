@@ -26,6 +26,8 @@ El Sistema de Gestión de Flota de Vehículos es una aplicación web empresarial
 - ✅ **Asignaciones**: Gestión de asignaciones conductor-vehículo
 - ✅ **Mantenimiento**: Tracking de mantenimientos preventivos y correctivos
 - ✅ **Proveedores**: Gestión de proveedores de servicios
+- ✅ **Unidades Organizativas**: Estructura jerárquica con asociación automática de recursos
+- ✅ **Control de Acceso por Org_Unit**: Aislamiento de recursos y filtrado automático
 
 ### Seguridad y Control
 - ✅ **Autenticación**: Sistema de login/logout seguro con sesiones
@@ -66,6 +68,7 @@ Toda la documentación se encuentra en la carpeta `docs/`:
 ### Seguridad y Auditoría
 - **[SECURITY.md](SECURITY.md)** - Políticas de seguridad y mejores prácticas
 - **[auditoria_logging.md](auditoria_logging.md)** - Sistema de auditoría y logging
+- **[ORGANIZATION_UNIT_ASSOCIATION.md](ORGANIZATION_UNIT_ASSOCIATION.md)** - Control de acceso por unidades organizativas
 
 ### Diseño y Arquitectura
 - **[DESIGN_GUIDE.md](DESIGN_GUIDE.md)** - Especificaciones de diseño y paleta de colores

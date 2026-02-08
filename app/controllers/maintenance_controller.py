@@ -4,6 +4,7 @@ from flask_login import login_required
 from datetime import datetime
 from app.utils.helpers import parse_money
 from app.services.maintenance_service import MaintenanceService
+from app.utils.organization_access import organization_protect
 from app.services.vehicle_service import VehicleService
 from app.services.provider_service import ProviderService
 from app.models.maintenance import MaintenanceType, MaintenanceStatus
@@ -37,6 +38,7 @@ def list_maintenance():
 
 @maintenance_bp.route('/<int:record_id>')
 @login_required
+@organization_protect(loader=MaintenanceService.get_maintenance_by_id, id_arg='record_id')
 def view_maintenance(record_id):
     """View maintenance record details"""
     record = MaintenanceService.get_maintenance_by_id(record_id)
@@ -84,6 +86,7 @@ def create_maintenance():
 
 @maintenance_bp.route('/<int:record_id>/complete', methods=['POST'])
 @login_required
+@organization_protect(loader=MaintenanceService.get_maintenance_by_id, id_arg='record_id')
 def complete_maintenance(record_id):
     """Complete maintenance"""
     try:
@@ -109,6 +112,7 @@ def complete_maintenance(record_id):
 
 @maintenance_bp.route('/<int:record_id>/edit', methods=['GET', 'POST'])
 @login_required
+@organization_protect(loader=MaintenanceService.get_maintenance_by_id, id_arg='record_id')
 def edit_maintenance(record_id):
     """Edit maintenance record"""
     record = MaintenanceService.get_maintenance_by_id(record_id)
@@ -146,6 +150,7 @@ def edit_maintenance(record_id):
 
 @maintenance_bp.route('/<int:record_id>/cancel', methods=['POST'])
 @login_required
+@organization_protect(loader=MaintenanceService.get_maintenance_by_id, id_arg='record_id')
 def cancel_maintenance(record_id):
     """Cancel maintenance"""
     reason = request.form.get('cancellation_reason')

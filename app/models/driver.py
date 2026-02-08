@@ -34,6 +34,7 @@ class Driver(db.Model):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     created_by = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=True)
     is_active = Column(Boolean, default=True)
 
     # Relationships
@@ -42,7 +43,7 @@ class Driver(db.Model):
     assignments = relationship("VehicleAssignment", back_populates="driver")
     reservations = relationship("Reservation", back_populates="driver")
     pickups = relationship("VehiclePickup", back_populates="driver")
-    user = relationship("User", back_populates="driver", uselist=False)
+    user = relationship("User", back_populates="driver", foreign_keys=[user_id], uselist=False)
 
     def __repr__(self):
         return f"<Driver {self.first_name} {self.last_name} - {self.document_number}>"

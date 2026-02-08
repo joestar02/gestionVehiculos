@@ -4,10 +4,13 @@ from flask_login import login_required, current_user
 from datetime import datetime, date, timedelta
 from calendar import monthrange
 from app.services.driver_service import DriverService
+from app.utils.organization_access import organization_protect
+from app.models.driver import Driver
 from app.services.organization_service import OrganizationService
 from app.services.reservation_service import ReservationService
+from app.services.auth_service import AuthService
 from app.models.driver import DriverType, DriverStatus
-from app.models.user import UserRole
+from app.models.user import UserRole, User
 from app.utils.error_helpers import log_exception
 from urllib.parse import urlencode
 from app.utils.pagination import paginate_list
@@ -17,7 +20,7 @@ driver_bp = Blueprint('drivers', __name__)
 @driver_bp.route('/')
 @login_required
 def list_drivers():
-    """List all drivers"""
+    """List all drivers (users with DRIVER role)"""
     try:
         page = int(request.args.get('page', 1))
     except ValueError:
@@ -31,12 +34,25 @@ def list_drivers():
     base_list_url = url_for('drivers.list_drivers')
     preserved_qs = urlencode(preserved_args) if preserved_args else ''
 
-    all_drivers = DriverService.get_all_drivers()
+    # Get user's organization unit
+    organization_unit_id = None
+    if current_user.driver and current_user.driver.organization_unit_id:
+        organization_unit_id = current_user.driver.organization_unit_id
+
+    # Get only drivers with DRIVER role users
+    all_user_drivers = User.query.filter_by(role=UserRole.DRIVER, is_active=True).all()
+    # Get associated drivers and filter by organization unit if needed
+    all_drivers = [u.driver for u in all_user_drivers if u.driver and u.driver.is_active]
+    if organization_unit_id:
+        all_drivers = [d for d in all_drivers if d.organization_unit_id == organization_unit_id]
+    all_drivers = sorted(all_drivers, key=lambda d: (d.last_name, d.first_name))
+    
     drivers, pagination = paginate_list(all_drivers, page=page, per_page=per_page)
     return render_template('drivers/list.html', drivers=drivers, pagination=pagination, base_list_url=base_list_url, preserved_qs=preserved_qs)
 
 @driver_bp.route('/<int:driver_id>')
 @login_required
+@organization_protect(model=Driver, id_arg='driver_id')
 def view_driver(driver_id):
     """View driver details"""
     driver = DriverService.get_driver_by_id(driver_id)
@@ -48,9 +64,57 @@ def view_driver(driver_id):
 @driver_bp.route('/new', methods=['GET', 'POST'])
 @login_required
 def create_driver():
-    """Create new driver"""
+    """Create new driver with associated user account"""
     if request.method == 'POST':
         try:
+            # Validate user data
+            username = request.form.get('username', '').strip()
+            email = request.form.get('email', '').strip()
+            password = request.form.get('password', '')
+            password_confirm = request.form.get('password_confirm', '')
+            
+            if not username or len(username) < 3:
+                flash('El nombre de usuario debe tener al menos 3 caracteres', 'warning')
+                organizations = OrganizationService.get_all_organizations()
+                return render_template('drivers/form.html', driver_types=DriverType, organizations=organizations)
+            
+            if not email or '@' not in email:
+                flash('Email válido es requerido', 'warning')
+                organizations = OrganizationService.get_all_organizations()
+                return render_template('drivers/form.html', driver_types=DriverType, organizations=organizations)
+            
+            if not password or len(password) < 6:
+                flash('La contraseña debe tener al menos 6 caracteres', 'warning')
+                organizations = OrganizationService.get_all_organizations()
+                return render_template('drivers/form.html', driver_types=DriverType, organizations=organizations)
+            
+            if password != password_confirm:
+                flash('Las contraseñas no coinciden', 'warning')
+                organizations = OrganizationService.get_all_organizations()
+                return render_template('drivers/form.html', driver_types=DriverType, organizations=organizations)
+            
+            # Check if user already exists
+            if User.query.filter_by(username=username).first():
+                flash('El nombre de usuario ya existe', 'warning')
+                organizations = OrganizationService.get_all_organizations()
+                return render_template('drivers/form.html', driver_types=DriverType, organizations=organizations)
+            
+            if User.query.filter_by(email=email).first():
+                flash('El email ya existe', 'warning')
+                organizations = OrganizationService.get_all_organizations()
+                return render_template('drivers/form.html', driver_types=DriverType, organizations=organizations)
+            
+            # Create user with DRIVER role
+            user = AuthService.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=request.form.get('first_name'),
+                last_name=request.form.get('last_name'),
+                role=UserRole.DRIVER
+            )
+            
+            # Create driver linked to user
             license_expiry = datetime.strptime(request.form.get('driver_license_expiry'), '%Y-%m-%d') if request.form.get('driver_license_expiry') else None
 
             driver = DriverService.create_driver(
@@ -62,12 +126,13 @@ def create_driver():
                 driver_license_expiry=license_expiry,
                 driver_type=DriverType(request.form.get('driver_type')),
                 organization_unit_id=int(request.form.get('organization_unit_id')) if request.form.get('organization_unit_id') else None,
-                email=request.form.get('email'),
+                email=email,
                 phone=request.form.get('phone'),
                 address=request.form.get('address'),
-                notes=request.form.get('notes')
+                notes=request.form.get('notes'),
+                user_id=user.id
             )
-            flash(f'Conductor {driver.full_name} creado exitosamente', 'success')
+            flash(f'Conductor {driver.full_name} y usuario {username} creados exitosamente', 'success')
             return redirect(url_for('drivers.view_driver', driver_id=driver.id))
         except ValueError as e:
             flash(str(e), 'warning')
@@ -82,6 +147,7 @@ def create_driver():
 
 @driver_bp.route('/<int:driver_id>/edit', methods=['GET', 'POST'])
 @login_required
+@organization_protect(model=Driver, id_arg='driver_id')
 def edit_driver(driver_id):
     """Edit driver"""
     driver = DriverService.get_driver_by_id(driver_id)
@@ -126,6 +192,7 @@ def edit_driver(driver_id):
 
 @driver_bp.route('/<int:driver_id>/delete', methods=['POST'])
 @login_required
+@organization_protect(model=Driver, id_arg='driver_id')
 def delete_driver(driver_id):
     """Delete driver"""
     if DriverService.delete_driver(driver_id):
@@ -136,6 +203,7 @@ def delete_driver(driver_id):
 
 @driver_bp.route('/<int:driver_id>/status', methods=['POST'])
 @login_required
+@organization_protect(model=Driver, id_arg='driver_id')
 def update_status(driver_id):
     """Update driver status"""
     try:

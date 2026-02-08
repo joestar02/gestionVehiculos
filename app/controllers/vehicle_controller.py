@@ -2,6 +2,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from app.services.vehicle_service import VehicleService
+from app.utils.organization_access import organization_protect
+from app.models.vehicle import Vehicle
 from app.models.vehicle import VehicleType, OwnershipType, VehicleStatus
 from app.utils.error_helpers import log_exception
 from app.core.permissions import has_permission, audit_operation
@@ -29,12 +31,18 @@ def list_vehicles():
     base_list_url = url_for('vehicles.list_vehicles')
     preserved_qs = urlencode(preserved_args) if preserved_args else ''
 
-    all_vehicles = VehicleService.get_all_vehicles()
+    # Get user's organization unit
+    organization_unit_id = None
+    if current_user.driver and current_user.driver.organization_unit_id:
+        organization_unit_id = current_user.driver.organization_unit_id
+
+    all_vehicles = VehicleService.get_all_vehicles(organization_unit_id=organization_unit_id)
     vehicles, pagination = paginate_list(all_vehicles, page=page, per_page=per_page)
     return render_template('vehicles/list.html', vehicles=vehicles, pagination=pagination, base_list_url=base_list_url, preserved_qs=preserved_qs)
 
 @vehicle_bp.route('/<int:vehicle_id>')
 @login_required
+@organization_protect(model=Vehicle, id_arg='vehicle_id')
 def view_vehicle(vehicle_id):
     """View vehicle details"""
     from app.services.vehicle_history_service import VehicleHistoryService
@@ -69,6 +77,30 @@ def create_vehicle():
     """Create new vehicle"""
     if request.method == 'POST':
         try:
+            # Get organization unit from form
+            organization_unit_id = request.form.get('organization_unit_id')
+            
+            # Validate organization unit
+            if not organization_unit_id:
+                flash('La unidad de organización es requerida', 'warning')
+                from app.models.organization import OrganizationUnit
+                organizations = OrganizationUnit.query.filter_by(is_active=True).order_by(OrganizationUnit.name).all()
+                return render_template('vehicles/form.html',
+                                     vehicle_types=VehicleType,
+                                     ownership_types=OwnershipType,
+                                     organizations=organizations)
+            
+            try:
+                org_unit_id = int(organization_unit_id)
+            except (ValueError, TypeError):
+                flash('Unidad de organización inválida', 'warning')
+                from app.models.organization import OrganizationUnit
+                organizations = OrganizationUnit.query.filter_by(is_active=True).order_by(OrganizationUnit.name).all()
+                return render_template('vehicles/form.html',
+                                     vehicle_types=VehicleType,
+                                     ownership_types=OwnershipType,
+                                     organizations=organizations)
+
             # Capture old state (none for creation)
             old_values = None
 
@@ -79,6 +111,7 @@ def create_vehicle():
                 year=int(request.form.get('year')),
                 vehicle_type=VehicleType(request.form.get('vehicle_type')),
                 ownership_type=OwnershipType(request.form.get('ownership_type')),
+                organization_unit_id=org_unit_id,
                 color=request.form.get('color'),
                 vin=request.form.get('vin'),
                 fuel_type=request.form.get('fuel_type'),
@@ -102,7 +135,8 @@ def create_vehicle():
                     'vin': vehicle.vin,
                     'fuel_type': vehicle.fuel_type,
                     'fuel_capacity': vehicle.fuel_capacity,
-                    'status': vehicle.status.value
+                    'status': vehicle.status.value,
+                    'organization_unit_id': vehicle.organization_unit_id
                 },
                 details={
                     'created_by_user': current_user.username,
@@ -129,12 +163,16 @@ def create_vehicle():
             err_id = log_exception(e, __name__)
             flash(f'Error al crear vehículo (id={err_id})', 'error')
 
+    from app.models.organization import OrganizationUnit
+    organizations = OrganizationUnit.query.filter_by(is_active=True).order_by(OrganizationUnit.name).all()
     return render_template('vehicles/form.html',
                          vehicle_types=VehicleType,
-                         ownership_types=OwnershipType)
+                         ownership_types=OwnershipType,
+                         organizations=organizations)
 
 @vehicle_bp.route('/<int:vehicle_id>/edit', methods=['GET', 'POST'])
 @login_required
+@organization_protect(model=Vehicle, id_arg='vehicle_id')
 def edit_vehicle(vehicle_id):
     """Edit vehicle"""
     vehicle = VehicleService.get_vehicle_by_id(vehicle_id)
@@ -173,6 +211,7 @@ def edit_vehicle(vehicle_id):
 
 @vehicle_bp.route('/<int:vehicle_id>/delete', methods=['POST'])
 @login_required
+@organization_protect(model=Vehicle, id_arg='vehicle_id')
 @has_permission('vehicle:delete')
 @audit_operation('DELETE', 'vehicle')
 def delete_vehicle(vehicle_id):
@@ -229,6 +268,7 @@ def delete_vehicle(vehicle_id):
 
 @vehicle_bp.route('/<int:vehicle_id>/status', methods=['POST'])
 @login_required
+@organization_protect(model=Vehicle, id_arg='vehicle_id')
 @has_permission('vehicle:edit')
 @audit_operation('UPDATE', 'vehicle_status')
 def update_status(vehicle_id):

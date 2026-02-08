@@ -11,6 +11,7 @@ from app.services.authorization_service import AuthorizationService
 from app.services.vehicle_service import VehicleService
 from app.services.insurance_service import InsuranceService
 from app.services.driver_service import DriverService
+from app.utils.organization_access import organization_protect
 from app.utils.helpers import save_uploaded_file, parse_money
 from app.utils.error_helpers import log_exception
 from app.models.itv import ITVResult
@@ -87,6 +88,7 @@ def itv_records():
 
 @compliance_bp.route('/itv/<int:record_id>')
 @login_required
+@organization_protect(loader=ITVService.get_itv_by_id, id_arg='record_id')
 def view_itv(record_id):
     """View ITV record details"""
     record = ITVService.get_itv_by_id(record_id)
@@ -164,6 +166,7 @@ def tax_records():
 
 @compliance_bp.route('/taxes/<int:tax_id>')
 @login_required
+@organization_protect(loader=TaxService.get_tax_by_id, id_arg='tax_id')
 def view_tax(tax_id):
     """View tax record details"""
     record = TaxService.get_tax_by_id(tax_id)
@@ -254,6 +257,7 @@ def insurance_list():
 
 @compliance_bp.route('/insurances/<int:insurance_id>')
 @login_required
+@organization_protect(loader=InsuranceService.get_insurance_by_id, id_arg='insurance_id')
 def view_insurance(insurance_id):
     """View insurance record details"""
     record = InsuranceService.get_insurance_by_id(insurance_id)
@@ -321,6 +325,7 @@ def create_insurance():
 
 @compliance_bp.route('/insurances/<int:insurance_id>/pay', methods=['POST'])
 @login_required
+@organization_protect(loader=InsuranceService.get_insurance_by_id, id_arg='insurance_id')
 def pay_insurance(insurance_id):
     """Mark insurance as paid"""
     try:
@@ -339,6 +344,7 @@ def pay_insurance(insurance_id):
 
 @compliance_bp.route('/insurances/<int:insurance_id>/edit', methods=['GET', 'POST'])
 @login_required
+@organization_protect(loader=InsuranceService.get_insurance_by_id, id_arg='insurance_id')
 def edit_insurance(insurance_id):
     """Edit insurance record"""
     record = InsuranceService.get_insurance_by_id(insurance_id)

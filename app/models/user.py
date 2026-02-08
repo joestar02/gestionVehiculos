@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Enum
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Enum, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -25,11 +25,14 @@ class User(db.Model, UserMixin):
     role = Column(Enum(UserRole), default=UserRole.VIEWER)
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)
+    organization_unit_id = Column(Integer, ForeignKey("organization_units.id"), nullable=True)
     last_login = Column(DateTime)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    driver = relationship("Driver", back_populates="user")    # Relationships
+    # Relationships
+    driver = relationship("Driver", back_populates="user", foreign_keys="Driver.user_id", uselist=False)
+    organization_unit = relationship("OrganizationUnit", back_populates="users")
     created_assignments = relationship("VehicleAssignment", back_populates="creator")
 
     def __repr__(self):

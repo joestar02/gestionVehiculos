@@ -22,6 +22,7 @@
         </form>
     </div>
 </div>
+                        <th>Unidad</th>
 
 <div class="card">
     <div class="card-body">
@@ -30,7 +31,8 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>Matrícula</th>                        
+                        <th>Matrícula</th>
+                        <th>Unidad</th>
                         <th>Tipo</th>
                         <th>Estado</th>
                         <th>Acciones</th>
@@ -40,6 +42,13 @@
                     {% for vehicle in vehicles %}
                     <tr>
                         <td><strong>{{ vehicle.license_plate }}</strong></td>
+                        <td>
+                            {% if vehicle.organization_unit %}
+                                {{ vehicle.organization_unit.name }}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
                         <td>
                             <span class="badge bg-secondary">{{ vehicle.vehicle_type.value }}</span>
                         </td>

@@ -15,7 +15,8 @@
 ### 🔧 Si quieres entender la implementación (1-2 horas)
 1. Lee: **`API_IMPLEMENTATION.md`** - Detalles técnicos
 2. Lee: **`IMPLEMENTACION_COMPLETA.md`** - Resumen de cambios
-3. Revisa el código en: `api_simple.py`, `demo_api.py`
+3. Lee: **`ORGANIZATION_UNIT_ASSOCIATION.md`** - Asociación de recursos con org_units
+4. Revisa el código en: `api_simple.py`, `demo_api.py`
 
 ---
 
@@ -52,6 +53,15 @@
 - Estructura de datos
 - Problemas resueltos
 - Próximos pasos
+
+### 🏢 Asociación con Unidades Organizativas (20 min)
+**Archivo**: `ORGANIZATION_UNIT_ASSOCIATION.md`
+- Relación vehículos-org_unit
+- Relación conductores-org_unit
+- Relación proveedores-org_unit
+- Control de acceso por org_unit
+- Auditoría de cambios
+- Ejemplos de uso
 
 ### 📊 Resumen de Implementación (10 min)
 **Archivo**: `IMPLEMENTACION_COMPLETA.md`
