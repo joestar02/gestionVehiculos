@@ -104,6 +104,20 @@
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-person-circle"></i> {{ current_user.full_name }}
+                            <small class="text-muted ms-2">
+                                {% if current_user.role.value == 'admin' %}
+                                    <span class="badge bg-danger">Administrador</span>
+                                {% elif current_user.role.value == 'fleet_manager' %}
+                                    <span class="badge bg-primary">Gestor de Flota</span>
+                                {% elif current_user.role.value == 'operations_manager' %}
+                                    <span class="badge bg-success">Gestor de Operaciones</span>
+                                {% elif current_user.role.value == 'driver' %}
+                                    <span class="badge bg-info">Conductor</span>
+                                {% elif current_user.role.value == 'viewer' %}
+                                    <span class="badge bg-secondary">Observador</span>
+                                {% endif %}
+                                &nbsp;•&nbsp;{{ current_user.organization_unit.name if current_user.organization_unit else (current_user.driver.organization_unit.name if current_user.driver and current_user.driver.organization_unit else 'Sin unidad') }}
+                            </small>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> Mi Perfil</a></li>

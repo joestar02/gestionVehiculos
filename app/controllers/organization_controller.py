@@ -157,6 +157,7 @@ def _load_children(org):
 
 @organization_bp.route('/')
 @login_required
+@has_role(UserRole.ADMIN)
 def list_organizations():
     """List all organizations"""
     organizations = OrganizationService.get_all_organizations()
@@ -184,6 +185,7 @@ def list_organizations():
 
 @organization_bp.route('/tree')
 @login_required
+@has_role(UserRole.ADMIN)
 def tree_organizations():
     """Render organizations as a hierarchical tree using jsTree"""
     try:
@@ -248,6 +250,7 @@ def tree_organizations():
 
 @organization_bp.route('/tree.json')
 @login_required
+@has_role(UserRole.ADMIN)
 def tree_organizations_json():
     """Return organization tree as JSON (serializable structure for jsTree)"""
     try:
@@ -390,6 +393,7 @@ def get_organizations_with_levels(organizations, parent_id=None, level=0):
 
 @organization_bp.route('/new', methods=['GET', 'POST'])
 @login_required
+@has_role(UserRole.ADMIN)
 def create_organization():
     """Create new organization"""
     if request.method == 'POST':
@@ -422,6 +426,7 @@ def create_organization():
 
 @organization_bp.route('/<int:org_id>/edit', methods=['GET', 'POST'])
 @login_required
+@has_role(UserRole.ADMIN)
 def edit_organization(org_id):
     """Edit organization"""
     organization = OrganizationService.get_organization_by_id(org_id)
@@ -462,6 +467,7 @@ def edit_organization(org_id):
 
 @organization_bp.route('/<int:org_id>/delete', methods=['POST'])
 @login_required
+@has_role(UserRole.ADMIN)
 def delete_organization(org_id):
     """Delete organization"""
     if OrganizationService.delete_organization(org_id):

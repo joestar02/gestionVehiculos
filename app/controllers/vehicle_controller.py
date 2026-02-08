@@ -5,6 +5,7 @@ from app.services.vehicle_service import VehicleService
 from app.utils.organization_access import organization_protect
 from app.models.vehicle import Vehicle
 from app.models.vehicle import VehicleType, OwnershipType, VehicleStatus
+from app.models.user import UserRole
 from app.utils.error_helpers import log_exception
 from app.core.permissions import has_permission, audit_operation
 from app.services.security_audit_service import SecurityAudit
@@ -31,12 +32,17 @@ def list_vehicles():
     base_list_url = url_for('vehicles.list_vehicles')
     preserved_qs = urlencode(preserved_args) if preserved_args else ''
 
-    # Get user's organization unit
-    organization_unit_id = None
-    if current_user.driver and current_user.driver.organization_unit_id:
-        organization_unit_id = current_user.driver.organization_unit_id
+    # Determine user's organization unit (user or driver profile)
+    organization_unit_id = getattr(current_user, 'organization_unit_id', None)
+    if organization_unit_id is None:
+        org_from_driver = getattr(getattr(current_user, 'driver', None), 'organization_unit_id', None)
+        organization_unit_id = org_from_driver
 
-    all_vehicles = VehicleService.get_all_vehicles(organization_unit_id=organization_unit_id)
+    # Non-admin users see only vehicles in their organization
+    if getattr(current_user, 'role', None) != getattr(UserRole, 'ADMIN'):
+        all_vehicles = VehicleService.get_all_vehicles(organization_unit_id=organization_unit_id)
+    else:
+        all_vehicles = VehicleService.get_all_vehicles()
     vehicles, pagination = paginate_list(all_vehicles, page=page, per_page=per_page)
     return render_template('vehicles/list.html', vehicles=vehicles, pagination=pagination, base_list_url=base_list_url, preserved_qs=preserved_qs)
 
@@ -75,42 +81,46 @@ def view_vehicle(vehicle_id):
 @audit_operation('CREATE', 'vehicle')
 def create_vehicle():
     """Create new vehicle"""
+    from app.models.organization import OrganizationUnit
+
     if request.method == 'POST':
         try:
-            # Get organization unit from form
-            organization_unit_id = request.form.get('organization_unit_id')
-            
-            # Validate organization unit
-            if not organization_unit_id:
-                flash('La unidad de organización es requerida', 'warning')
-                from app.models.organization import OrganizationUnit
-                organizations = OrganizationUnit.query.filter_by(is_active=True).order_by(OrganizationUnit.name).all()
-                return render_template('vehicles/form.html',
-                                     vehicle_types=VehicleType,
-                                     ownership_types=OwnershipType,
-                                     organizations=organizations)
-            
-            try:
-                org_unit_id = int(organization_unit_id)
-            except (ValueError, TypeError):
-                flash('Unidad de organización inválida', 'warning')
-                from app.models.organization import OrganizationUnit
-                organizations = OrganizationUnit.query.filter_by(is_active=True).order_by(OrganizationUnit.name).all()
-                return render_template('vehicles/form.html',
-                                     vehicle_types=VehicleType,
-                                     ownership_types=OwnershipType,
-                                     organizations=organizations)
+            # Determine organization unit: admins may choose from form;
+            # non-admin users are limited to their own org
+            user_org = getattr(current_user, 'organization_unit_id', None) or getattr(getattr(current_user, 'driver', None), 'organization_unit_id', None)
 
-            # Capture old state (none for creation)
-            old_values = None
+            if getattr(current_user, 'role', None) != UserRole.ADMIN:
+                if not user_org:
+                    flash('No estás asignado a una unidad organizativa', 'error')
+                    return redirect(url_for('vehicles.list_vehicles'))
+                org_unit_id = int(user_org)
+            else:
+                # Admin: read org from form
+                organization_unit_id = request.form.get('organization_unit_id')
+                if not organization_unit_id:
+                    flash('La unidad de organización es requerida', 'warning')
+                    organizations = OrganizationUnit.query.filter_by(is_active=True).order_by(OrganizationUnit.name).all()
+                    return render_template('vehicles/form.html',
+                                         vehicle_types=VehicleType,
+                                         ownership_types=OwnershipType,
+                                         organizations=organizations)
+                try:
+                    org_unit_id = int(organization_unit_id)
+                except (ValueError, TypeError):
+                    flash('Unidad de organización inválida', 'warning')
+                    organizations = OrganizationUnit.query.filter_by(is_active=True).order_by(OrganizationUnit.name).all()
+                    return render_template('vehicles/form.html',
+                                         vehicle_types=VehicleType,
+                                         ownership_types=OwnershipType,
+                                         organizations=organizations)
 
             vehicle = VehicleService.create_vehicle(
                 license_plate=request.form.get('license_plate'),
                 make=request.form.get('make'),
                 model=request.form.get('model'),
-                year=int(request.form.get('year')),
-                vehicle_type=VehicleType(request.form.get('vehicle_type')),
-                ownership_type=OwnershipType(request.form.get('ownership_type')),
+                year=int(request.form.get('year')) if request.form.get('year') else None,
+                vehicle_type=VehicleType(request.form.get('vehicle_type')) if request.form.get('vehicle_type') else None,
+                ownership_type=OwnershipType(request.form.get('ownership_type')) if request.form.get('ownership_type') else None,
                 organization_unit_id=org_unit_id,
                 color=request.form.get('color'),
                 vin=request.form.get('vin'),
@@ -129,13 +139,13 @@ def create_vehicle():
                     'make': vehicle.make,
                     'model': vehicle.model,
                     'year': vehicle.year,
-                    'vehicle_type': vehicle.vehicle_type.value,
-                    'ownership_type': vehicle.ownership_type.value,
+                    'vehicle_type': vehicle.vehicle_type.value if vehicle.vehicle_type else None,
+                    'ownership_type': vehicle.ownership_type.value if vehicle.ownership_type else None,
                     'color': vehicle.color,
                     'vin': vehicle.vin,
                     'fuel_type': vehicle.fuel_type,
                     'fuel_capacity': vehicle.fuel_capacity,
-                    'status': vehicle.status.value,
+                    'status': vehicle.status.value if vehicle.status else None,
                     'organization_unit_id': vehicle.organization_unit_id
                 },
                 details={
@@ -163,8 +173,12 @@ def create_vehicle():
             err_id = log_exception(e, __name__)
             flash(f'Error al crear vehículo (id={err_id})', 'error')
 
-    from app.models.organization import OrganizationUnit
-    organizations = OrganizationUnit.query.filter_by(is_active=True).order_by(OrganizationUnit.name).all()
+    # Prepare organizations for form
+    user_org = getattr(current_user, 'organization_unit_id', None) or getattr(getattr(current_user, 'driver', None), 'organization_unit_id', None)
+    if getattr(current_user, 'role', None) != UserRole.ADMIN:
+        organizations = OrganizationUnit.query.filter_by(is_active=True, id=user_org).order_by(OrganizationUnit.name).all() if user_org else []
+    else:
+        organizations = OrganizationUnit.query.filter_by(is_active=True).order_by(OrganizationUnit.name).all()
     return render_template('vehicles/form.html',
                          vehicle_types=VehicleType,
                          ownership_types=OwnershipType,
